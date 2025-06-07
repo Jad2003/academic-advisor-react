@@ -1,7 +1,9 @@
 
-import { Button } from "@/components/ui/button";
-import { GraduationCap, User, LogIn } from "lucide-react";
-import { Link } from "react-router-dom";
+import CustomButton from "./ui/CustomButton";
+import GraduationCap from "./icons/GraduationCap";
+import User from "./icons/User";
+import LogIn from "./icons/LogIn";
+import { Link } from "../utils/router";
 
 const Header = () => {
   return (
@@ -33,16 +35,16 @@ const Header = () => {
           {/* Auth Buttons */}
           <div className="flex items-center space-x-3">
             <Link to="/login">
-              <Button variant="ghost" className="text-gray-600 hover:text-blue-600">
+              <CustomButton variant="ghost" className="text-gray-600 hover:text-blue-600">
                 <LogIn className="h-4 w-4 mr-2" />
                 Login
-              </Button>
+              </CustomButton>
             </Link>
             <Link to="/signup">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <CustomButton className="bg-blue-600 hover:bg-blue-700 text-white">
                 <User className="h-4 w-4 mr-2" />
                 Sign Up
-              </Button>
+              </CustomButton>
             </Link>
           </div>
         </div>
