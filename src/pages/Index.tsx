@@ -1,11 +1,8 @@
 
-import CustomButton from "@/components/ui/CustomButton";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/CustomCard";
-import GraduationCap from "@/components/icons/GraduationCap";
-import Brain from "@/components/icons/Brain";
-import BookOpen from "@/components/icons/BookOpen";
-import TrendingUp from "@/components/icons/TrendingUp";
-import { Link } from "@/utils/router";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { GraduationCap, Brain, BookOpen, TrendingUp } from "lucide-react";
+import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 
 const Index = () => {
@@ -51,9 +48,9 @@ const Index = () => {
                 </div>
               </div>
               <Link to="/grades-analysis" className="block">
-                <CustomButton className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3">
+                <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3">
                   Start Grade Analysis
-                </CustomButton>
+                </Button>
               </Link>
             </CardContent>
           </Card>
@@ -81,9 +78,9 @@ const Index = () => {
                 </div>
               </div>
               <Link to="/personality-assessment" className="block">
-                <CustomButton className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3">
+                <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3">
                   Start Assessment
-                </CustomButton>
+                </Button>
               </Link>
             </CardContent>
           </Card>
