@@ -216,14 +216,14 @@ const PersonalityAssessment = () => {
       }
     });
 
-    // Generate major recommendations based on traits
+    // Generate major recommendations based on traits (with capped scores)
     const majorRecommendations: AssessmentResult[] = [];
 
     // Computer Science/Engineering
     if (traits.technical >= 8 || traits.analytical >= 8) {
       majorRecommendations.push({
         major: "Computer Science",
-        match: Math.min(95, (traits.technical + traits.analytical) * 4),
+        match: Math.min(95, Math.round((traits.technical + traits.analytical) * 3)),
         description: "Perfect for logical thinkers who enjoy solving technical problems and building systems.",
         traits: ["Strong analytical thinking", "Technical problem-solving", "Logical reasoning"]
       });
@@ -233,7 +233,7 @@ const PersonalityAssessment = () => {
     if (traits.leadership >= 6 || (traits.practical >= 5 && traits.social >= 5)) {
       majorRecommendations.push({
         major: "Business Administration",
-        match: Math.min(95, (traits.leadership + traits.practical + traits.social) * 2.5),
+        match: Math.min(95, Math.round((traits.leadership + traits.practical + traits.social) * 2)),
         description: "Ideal for natural leaders who want to manage teams and drive business success.",
         traits: ["Leadership qualities", "Practical thinking", "Social skills"]
       });
@@ -243,7 +243,7 @@ const PersonalityAssessment = () => {
     if (traits.empathetic >= 8 || (traits.social >= 6 && traits.empathetic >= 6)) {
       majorRecommendations.push({
         major: "Psychology",
-        match: Math.min(95, (traits.empathetic + traits.social) * 4),
+        match: Math.min(95, Math.round((traits.empathetic + traits.social) * 3)),
         description: "Great for understanding human behavior and helping others overcome challenges.",
         traits: ["High empathy", "Strong social awareness", "Desire to help others"]
       });
@@ -253,7 +253,7 @@ const PersonalityAssessment = () => {
     if (traits.creative >= 8) {
       majorRecommendations.push({
         major: "Fine Arts",
-        match: Math.min(95, traits.creative * 6),
+        match: Math.min(95, Math.round(traits.creative * 4.5)),
         description: "Perfect for expressing creativity and bringing artistic visions to life.",
         traits: ["Strong creative expression", "Artistic vision", "Innovative thinking"]
       });
@@ -263,7 +263,7 @@ const PersonalityAssessment = () => {
     if ((traits.technical >= 6 && traits.analytical >= 6) || traits.practical >= 8) {
       majorRecommendations.push({
         major: "Engineering",
-        match: Math.min(95, (traits.technical + traits.analytical + traits.practical) * 2),
+        match: Math.min(95, Math.round((traits.technical + traits.analytical + traits.practical) * 1.5)),
         description: "Excellent for applying scientific principles to solve real-world problems.",
         traits: ["Technical aptitude", "Problem-solving skills", "Practical application"]
       });
@@ -273,7 +273,7 @@ const PersonalityAssessment = () => {
     if (traits.social >= 6 && traits.empathetic >= 6 && traits.creative >= 4) {
       majorRecommendations.push({
         major: "Education",
-        match: Math.min(95, (traits.social + traits.empathetic + traits.creative) * 2.2),
+        match: Math.min(95, Math.round((traits.social + traits.empathetic + traits.creative) * 1.7)),
         description: "Ideal for sharing knowledge and shaping future generations.",
         traits: ["Strong communication", "Empathetic nature", "Love of learning"]
       });
@@ -283,7 +283,7 @@ const PersonalityAssessment = () => {
     if (traits.creative >= 6 && traits.social >= 6) {
       majorRecommendations.push({
         major: "Communications",
-        match: Math.min(95, (traits.creative + traits.social) * 3.5),
+        match: Math.min(95, Math.round((traits.creative + traits.social) * 2.5)),
         description: "Perfect for storytelling and connecting with diverse audiences.",
         traits: ["Creative communication", "Social awareness", "Media literacy"]
       });

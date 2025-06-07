@@ -98,87 +98,88 @@ const GradesAnalysis = () => {
 
     // Engineering - Strong in Math and Science
     if (grades.math >= 85 && grades.science >= 85) {
-      rules.engineering.match += 90;
+      rules.engineering.match += 40;
       rules.engineering.reasons.push("Excellent mathematics and science grades");
     } else if (grades.math >= 75 && grades.science >= 75) {
-      rules.engineering.match += 70;
+      rules.engineering.match += 30;
       rules.engineering.reasons.push("Strong mathematics and science performance");
     }
 
     // Computer Science - Math + logical thinking
     if (grades.math >= 80) {
-      rules.computerScience.match += 80;
+      rules.computerScience.match += 35;
       rules.computerScience.reasons.push("Strong mathematical reasoning skills");
     }
     if (grades.science >= 75) {
-      rules.computerScience.match += 60;
+      rules.computerScience.match += 25;
       rules.computerScience.reasons.push("Good analytical and scientific thinking");
     }
 
     // Medicine - Science + overall academic excellence
     if (grades.science >= 90 && (grades.math + grades.english) / 2 >= 85) {
-      rules.medicine.match += 95;
+      rules.medicine.match += 45;
       rules.medicine.reasons.push("Outstanding science performance with strong academics");
     } else if (grades.science >= 80) {
-      rules.medicine.match += 75;
+      rules.medicine.match += 35;
       rules.medicine.reasons.push("Strong science foundation");
     }
 
     // Business - Well-rounded with good communication
     const avgGrade = Object.values(grades).reduce((a, b) => a + b, 0) / Object.values(grades).length;
     if (avgGrade >= 80 && grades.english >= 75) {
-      rules.business.match += 80;
+      rules.business.match += 35;
       rules.business.reasons.push("Well-rounded academic performance with good communication skills");
     }
     if (grades.math >= 70) {
-      rules.business.match += 50;
+      rules.business.match += 20;
       rules.business.reasons.push("Adequate quantitative skills for business analysis");
     }
 
     // Literature - Strong English and Arts
     if (grades.english >= 85) {
-      rules.literature.match += 90;
+      rules.literature.match += 40;
       rules.literature.reasons.push("Excellent language and communication skills");
     }
     if (grades.arts >= 75) {
-      rules.literature.match += 60;
+      rules.literature.match += 25;
       rules.literature.reasons.push("Creative expression abilities");
     }
     if (grades.foreignLanguage >= 80) {
-      rules.literature.match += 70;
+      rules.literature.match += 30;
       rules.literature.reasons.push("Strong language learning aptitude");
     }
 
     // History - English + History strong
     if (grades.history >= 85 && grades.english >= 75) {
-      rules.history.match += 90;
+      rules.history.match += 40;
       rules.history.reasons.push("Excellent historical analysis and writing skills");
     } else if (grades.history >= 75) {
-      rules.history.match += 70;
+      rules.history.match += 30;
       rules.history.reasons.push("Strong interest and ability in historical studies");
     }
 
     // Fine Arts - Arts primary with creativity
     if (grades.arts >= 85) {
-      rules.arts.match += 95;
+      rules.arts.match += 45;
       rules.arts.reasons.push("Outstanding creative and artistic abilities");
     } else if (grades.arts >= 70) {
-      rules.arts.match += 75;
+      rules.arts.match += 35;
       rules.arts.reasons.push("Good artistic skills and creative potential");
     }
 
     // Psychology - Good overall with people skills (inferred from language skills)
     if (grades.english >= 80 && grades.foreignLanguage >= 75) {
-      rules.psychology.match += 80;
+      rules.psychology.match += 35;
       rules.psychology.reasons.push("Strong communication skills essential for psychology");
     }
     if (avgGrade >= 75) {
-      rules.psychology.match += 60;
+      rules.psychology.match += 25;
       rules.psychology.reasons.push("Good overall academic foundation");
     }
 
-    // Convert to array and sort by match score
+    // Cap all scores at 100 and sort
     const sortedRecommendations = Object.values(rules)
+      .map(rule => ({ ...rule, match: Math.min(100, rule.match) }))
       .filter(rule => rule.match > 0)
       .sort((a, b) => b.match - a.match)
       .slice(0, 5); // Top 5 recommendations
