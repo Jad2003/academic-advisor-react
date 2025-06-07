@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Brain, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import JobOpportunities from "@/components/JobOpportunities";
 
 interface Question {
   id: number;
@@ -374,6 +374,11 @@ const PersonalityAssessment = () => {
                 </CardContent>
               </Card>
             ))}
+
+            {/* Job Opportunities for Top Recommendation */}
+            {results.length > 0 && (
+              <JobOpportunities majorName={results[0].major} />
+            )}
           </div>
 
           {/* Action Buttons */}

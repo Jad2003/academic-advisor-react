@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Calculator, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import JobOpportunities from "@/components/JobOpportunities";
 
 interface Grades {
   math: number;
@@ -263,6 +263,11 @@ const GradesAnalysis = () => {
                 </CardContent>
               </Card>
             ))}
+
+            {/* Job Opportunities for Top Recommendation */}
+            {recommendations.length > 0 && (
+              <JobOpportunities majorName={recommendations[0].major} />
+            )}
           </div>
 
           {/* Action Buttons */}
