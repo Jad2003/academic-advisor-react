@@ -3,12 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap, Brain, BookOpen, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
+import Header from "@/components/Header";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <header className="container mx-auto px-4 py-8">
+      <Header />
+      
+      {/* Hero Section */}
+      <header className="container mx-auto px-4 py-16">
         <div className="flex items-center justify-center mb-8">
           <GraduationCap className="h-8 w-8 text-blue-600 mr-3" />
           <h1 className="text-3xl font-bold text-gray-900">EduGuide AI</h1>
