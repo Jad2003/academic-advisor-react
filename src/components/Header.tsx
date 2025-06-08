@@ -20,7 +20,7 @@ const Header = () => {
               Home
             </Link>
             <Link to="/domains" className="text-gray-600 hover:text-blue-600 transition-colors">
-              Domains
+              Jobs
             </Link>
             <Link to="/about" className="text-gray-600 hover:text-blue-600 transition-colors">
               About Us
