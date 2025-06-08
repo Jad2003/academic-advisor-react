@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Brain, ChevronRight } from "lucide-react";
+import { ArrowLeft, Brain, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import JobOpportunities from "@/components/JobOpportunities";
@@ -118,6 +118,7 @@ const PersonalityAssessment = () => {
   const [answers, setAnswers] = useState<{ [key: number]: number }>({});
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState<AssessmentResult[]>([]);
+  const [showAllResults, setShowAllResults] = useState(false);
 
   const handleAnswer = (value: string) => {
     const answerIndex = parseInt(value);
@@ -141,7 +142,7 @@ const PersonalityAssessment = () => {
   const analyzeAnswers = () => {
     console.log("Analyzing personality assessment answers:", answers);
     
-    // AI-based personality analysis
+    // AI-based personality analysis with improved scoring
     const traits = {
       analytical: 0,
       creative: 0,
@@ -216,96 +217,137 @@ const PersonalityAssessment = () => {
       }
     });
 
-    // Generate major recommendations based on traits (with capped scores)
+    // Generate major recommendations with better baseline scores
     const majorRecommendations: AssessmentResult[] = [];
+    const baseScore = 45; // Minimum baseline score
 
     // Computer Science/Engineering
-    if (traits.technical >= 8 || traits.analytical >= 8) {
+    const techScore = traits.technical + traits.analytical;
+    if (techScore >= 8) {
       majorRecommendations.push({
         major: "Computer Science",
-        match: Math.min(95, Math.round((traits.technical + traits.analytical) * 3)),
+        match: Math.min(95, baseScore + (techScore * 4)),
         description: "Perfect for logical thinkers who enjoy solving technical problems and building systems.",
         traits: ["Strong analytical thinking", "Technical problem-solving", "Logical reasoning"]
+      });
+    } else if (techScore >= 5) {
+      majorRecommendations.push({
+        major: "Computer Science",
+        match: Math.min(85, baseScore + (techScore * 3)),
+        description: "Perfect for logical thinkers who enjoy solving technical problems and building systems.",
+        traits: ["Analytical thinking", "Problem-solving", "Technical aptitude"]
       });
     }
 
     // Business/Management
-    if (traits.leadership >= 6 || (traits.practical >= 5 && traits.social >= 5)) {
+    const businessScore = traits.leadership + traits.practical + traits.social;
+    if (businessScore >= 10) {
       majorRecommendations.push({
         major: "Business Administration",
-        match: Math.min(95, Math.round((traits.leadership + traits.practical + traits.social) * 2)),
+        match: Math.min(92, baseScore + (businessScore * 3)),
         description: "Ideal for natural leaders who want to manage teams and drive business success.",
         traits: ["Leadership qualities", "Practical thinking", "Social skills"]
+      });
+    } else if (businessScore >= 6) {
+      majorRecommendations.push({
+        major: "Business Administration",
+        match: Math.min(80, baseScore + (businessScore * 2.5)),
+        description: "Ideal for natural leaders who want to manage teams and drive business success.",
+        traits: ["Leadership potential", "Practical approach", "Team-oriented"]
       });
     }
 
     // Psychology/Social Work
-    if (traits.empathetic >= 8 || (traits.social >= 6 && traits.empathetic >= 6)) {
+    const psychScore = traits.empathetic + traits.social;
+    if (psychScore >= 8) {
       majorRecommendations.push({
         major: "Psychology",
-        match: Math.min(95, Math.round((traits.empathetic + traits.social) * 3)),
+        match: Math.min(90, baseScore + (psychScore * 4)),
         description: "Great for understanding human behavior and helping others overcome challenges.",
         traits: ["High empathy", "Strong social awareness", "Desire to help others"]
+      });
+    } else if (psychScore >= 5) {
+      majorRecommendations.push({
+        major: "Psychology",
+        match: Math.min(78, baseScore + (psychScore * 3)),
+        description: "Great for understanding human behavior and helping others overcome challenges.",
+        traits: ["Empathetic nature", "Social understanding", "People skills"]
       });
     }
 
     // Fine Arts/Creative Fields
-    if (traits.creative >= 8) {
+    if (traits.creative >= 6) {
       majorRecommendations.push({
         major: "Fine Arts",
-        match: Math.min(95, Math.round(traits.creative * 4.5)),
+        match: Math.min(88, baseScore + (traits.creative * 5)),
         description: "Perfect for expressing creativity and bringing artistic visions to life.",
         traits: ["Strong creative expression", "Artistic vision", "Innovative thinking"]
       });
     }
 
     // Engineering
-    if ((traits.technical >= 6 && traits.analytical >= 6) || traits.practical >= 8) {
+    const engineeringScore = traits.technical + traits.analytical + traits.practical;
+    if (engineeringScore >= 10) {
       majorRecommendations.push({
         major: "Engineering",
-        match: Math.min(95, Math.round((traits.technical + traits.analytical + traits.practical) * 1.5)),
+        match: Math.min(93, baseScore + (engineeringScore * 2.5)),
         description: "Excellent for applying scientific principles to solve real-world problems.",
         traits: ["Technical aptitude", "Problem-solving skills", "Practical application"]
+      });
+    } else if (engineeringScore >= 6) {
+      majorRecommendations.push({
+        major: "Engineering",
+        match: Math.min(82, baseScore + (engineeringScore * 2)),
+        description: "Excellent for applying scientific principles to solve real-world problems.",
+        traits: ["Technical interest", "Analytical skills", "Problem-solving"]
       });
     }
 
     // Liberal Arts/Education
-    if (traits.social >= 6 && traits.empathetic >= 6 && traits.creative >= 4) {
+    const educationScore = traits.social + traits.empathetic + traits.creative;
+    if (educationScore >= 9) {
       majorRecommendations.push({
         major: "Education",
-        match: Math.min(95, Math.round((traits.social + traits.empathetic + traits.creative) * 1.7)),
+        match: Math.min(87, baseScore + (educationScore * 2.5)),
         description: "Ideal for sharing knowledge and shaping future generations.",
         traits: ["Strong communication", "Empathetic nature", "Love of learning"]
       });
     }
 
     // Communications/Media
-    if (traits.creative >= 6 && traits.social >= 6) {
+    const commScore = traits.creative + traits.social;
+    if (commScore >= 7) {
       majorRecommendations.push({
         major: "Communications",
-        match: Math.min(95, Math.round((traits.creative + traits.social) * 2.5)),
+        match: Math.min(85, baseScore + (commScore * 3)),
         description: "Perfect for storytelling and connecting with diverse audiences.",
         traits: ["Creative communication", "Social awareness", "Media literacy"]
       });
     }
 
-    // Sort by match score and take top 4
-    const finalResults = majorRecommendations
-      .sort((a, b) => b.match - a.match)
-      .slice(0, 4);
+    // Sort by match score and take all recommendations
+    let finalResults = majorRecommendations
+      .sort((a, b) => b.match - a.match);
 
-    // Ensure we have at least one recommendation
-    if (finalResults.length === 0) {
-      finalResults.push({
+    // Ensure we have at least one strong recommendation
+    if (finalResults.length === 0 || finalResults[0].match < 60) {
+      finalResults.unshift({
         major: "Liberal Arts",
-        match: 75,
+        match: 72,
         description: "A broad field that allows you to explore various interests while developing critical thinking skills.",
         traits: ["Well-rounded interests", "Adaptable", "Open to exploration"]
       });
     }
 
+    // Boost top recommendation if needed
+    if (finalResults[0].match < 65) {
+      finalResults[0].match = Math.min(85, finalResults[0].match + 15);
+      finalResults[0].traits.push("Best overall match for your personality");
+    }
+
     setResults(finalResults);
     setShowResults(true);
+    setShowAllResults(false);
     toast.success("Assessment complete! Your personality-based recommendations are ready.");
   };
 
@@ -314,9 +356,11 @@ const PersonalityAssessment = () => {
     setAnswers({});
     setShowResults(false);
     setResults([]);
+    setShowAllResults(false);
   };
 
   const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const displayedResults = showAllResults ? results : results.slice(0, 3);
 
   if (showResults) {
     return (
@@ -335,13 +379,18 @@ const PersonalityAssessment = () => {
 
           {/* Results */}
           <div className="space-y-6 max-w-4xl mx-auto">
-            {results.map((result, index) => (
+            {displayedResults.map((result, index) => (
               <Card key={index} className="border-0 shadow-lg bg-white/80 backdrop-blur">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl text-gray-900">{result.major}</CardTitle>
                     <div className="flex items-center">
-                      <div className="text-2xl font-bold text-purple-600 mr-2">{result.match}%</div>
+                      <span className="text-sm bg-purple-100 text-purple-800 px-2 py-1 rounded-full mr-3">
+                        #{index + 1}
+                      </span>
+                      <CardTitle className="text-xl text-gray-900">{result.major}</CardTitle>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="text-2xl font-bold text-purple-600 mr-2">{Math.round(result.match)}%</div>
                       <div className="text-sm text-gray-500">Match</div>
                     </div>
                   </div>
@@ -374,6 +423,29 @@ const PersonalityAssessment = () => {
                 </CardContent>
               </Card>
             ))}
+
+            {/* Show More/Less Button */}
+            {results.length > 3 && (
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => setShowAllResults(!showAllResults)}
+                  variant="outline"
+                  className="flex items-center"
+                >
+                  {showAllResults ? (
+                    <>
+                      <ChevronUp className="h-4 w-4 mr-2" />
+                      Show Less
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4 mr-2" />
+                      Show More ({results.length - 3} more)
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
 
             {/* Job Opportunities for Top Recommendation */}
             {results.length > 0 && (
