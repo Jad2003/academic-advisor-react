@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,14 +56,14 @@ const GradesAnalysis = () => {
   };
 
   const analyzeGrades = () => {
-    console.log("Analyzing grades with AI-powered rule-based system:", grades);
+    console.log("Analyzing grades:", grades);
     
     // Convert grades to percentage for easier calculation (Lebanese system is out of 20)
     const gradePercentages = Object.fromEntries(
       Object.entries(grades).map(([key, value]) => [key, (value / 20) * 100])
     );
     
-    // AI rule-based system with advanced scoring algorithms
+    // Rule-based AI logic with better scoring
     const rules: { [key: string]: MajorRecommendation } = {
       engineering: {
         major: "Engineering",
@@ -200,7 +201,7 @@ const GradesAnalysis = () => {
     setRecommendations(sortedRecommendations);
     setShowResults(true);
     setShowAllRecommendations(false);
-    toast.success("AI analysis complete! Check your recommendations below.");
+    toast.success("Analysis complete! Check your recommendations below.");
   };
 
   const resetAnalysis = () => {
@@ -237,7 +238,7 @@ const GradesAnalysis = () => {
                 Back Home
               </Button>
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Your AI-Powered Major Recommendations</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Your Major Recommendations</h1>
           </div>
 
           {/* Results */}
@@ -340,8 +341,8 @@ const GradesAnalysis = () => {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">AI Grade-Based Analysis</h1>
-            <p className="text-gray-600 mt-2">Enter your Lebanese Baccalaureate grades for AI-powered major recommendations</p>
+            <h1 className="text-3xl font-bold text-gray-900">Grade-Based Analysis</h1>
+            <p className="text-gray-600 mt-2">Enter your Lebanese Baccalaureate grades to get personalized major recommendations</p>
           </div>
         </div>
 
@@ -350,9 +351,9 @@ const GradesAnalysis = () => {
           <CardHeader>
             <CardTitle className="flex items-center text-gray-900">
               <Calculator className="h-6 w-6 mr-2 text-blue-600" />
-              Enter Your Lebanese Baccalaureate Grades for AI Analysis
+              Enter Your Lebanese Baccalaureate Grades
             </CardTitle>
-            <p className="text-sm text-gray-600">Please enter your grades (0-20) for each subject. Our AI system will analyze them.</p>
+            <p className="text-sm text-gray-600">Please enter your grades (0-20) for each subject</p>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid md:grid-cols-3 gap-4">
@@ -519,7 +520,7 @@ const GradesAnalysis = () => {
               className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3"
             >
               <BookOpen className="h-5 w-5 mr-2" />
-              Analyze My Grades with AI
+              Analyze My Grades
             </Button>
           </CardContent>
         </Card>

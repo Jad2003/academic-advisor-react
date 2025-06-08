@@ -1,13 +1,23 @@
 
-# EduGuide - Career Guidance Platform
+# EduGuide AI - Career Guidance Platform
 
 A modern web application built with React, TypeScript, and Tailwind CSS that helps students discover career paths through personality assessments and grade analysis.
 
-## 🚀 Quick Start
+## 🚀 Quick Start for Beginners
 
 ### Prerequisites
 1. **Node.js** (version 18 or higher) - [Download here](https://nodejs.org/)
 2. **Visual Studio Code** - [Download here](https://code.visualstudio.com/)
+
+### Recommended VS Code Extensions
+Install these extensions for the best development experience:
+- **ES7+ React/Redux/React-Native snippets** - For React code snippets
+- **Auto Rename Tag** - Automatically rename paired HTML/JSX tags
+- **Bracket Pair Colorizer 2** - Color matching brackets
+- **Prettier - Code formatter** - Auto-format your code
+- **Thunder Client** - Test APIs (like Postman)
+- **Live Server** - Preview HTML files
+- **GitLens** - Enhanced Git capabilities
 
 ### 📦 Installation Steps
 
@@ -59,7 +69,7 @@ src/
 ├── components/          # Reusable UI components
 │   ├── Header.tsx      # Navigation bar
 │   ├── JobOpportunities.tsx
-│   └── ui/             # UI component library
+│   └── ui/             # Shadcn UI components
 ├── pages/              # Different app pages
 │   ├── Index.tsx       # Home page
 │   ├── About.tsx       # About page
@@ -87,6 +97,7 @@ src/
 - **TypeScript** - Type-safe JavaScript
 - **Vite** - Fast build tool
 - **Tailwind CSS** - Utility-first CSS
+- **Shadcn/ui** - Modern UI components
 - **React Router** - Client-side routing
 - **Lucide React** - Beautiful icons
 
