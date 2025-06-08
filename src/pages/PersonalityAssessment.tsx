@@ -140,9 +140,9 @@ const PersonalityAssessment = () => {
   };
 
   const analyzeAnswers = () => {
-    console.log("Analyzing personality assessment answers:", answers);
+    console.log("Analyzing personality assessment answers with AI algorithms:", answers);
     
-    // AI-based personality analysis with improved scoring
+    // AI-based personality analysis with improved scoring algorithms
     const traits = {
       analytical: 0,
       creative: 0,
@@ -348,7 +348,7 @@ const PersonalityAssessment = () => {
     setResults(finalResults);
     setShowResults(true);
     setShowAllResults(false);
-    toast.success("Assessment complete! Your personality-based recommendations are ready.");
+    toast.success("AI assessment complete! Your personality-based recommendations are ready.");
   };
 
   const resetAssessment = () => {
@@ -374,7 +374,7 @@ const PersonalityAssessment = () => {
                 Back Home
               </Button>
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Your Personality-Based Recommendations</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Your AI Personality-Based Recommendations</h1>
           </div>
 
           {/* Results */}
@@ -481,8 +481,8 @@ const PersonalityAssessment = () => {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Personality Assessment</h1>
-            <p className="text-gray-600 mt-2">Answer these questions to discover your ideal major</p>
+            <h1 className="text-3xl font-bold text-gray-900">AI Personality Assessment</h1>
+            <p className="text-gray-600 mt-2">Answer these questions for AI-powered major discovery</p>
           </div>
         </div>
 
