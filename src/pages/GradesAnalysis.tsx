@@ -63,139 +63,183 @@ const GradesAnalysis = () => {
       Object.entries(grades).map(([key, value]) => [key, (value / 20) * 100])
     );
     
-    // Rule-based AI logic with better scoring
-    const rules: { [key: string]: MajorRecommendation } = {
-      engineering: {
+    // Enhanced rule-based AI logic with better subject correlation
+    const recommendations: MajorRecommendation[] = [];
+    
+    // Calculate subject group averages for better precision
+    const stemAvg = (gradePercentages.mathematics + gradePercentages.physics + gradePercentages.chemistry) / 3;
+    const bioMedAvg = (gradePercentages.biology + gradePercentages.chemistry + gradePercentages.physics) / 3;
+    const languagesAvg = (gradePercentages.arabic + gradePercentages.english + gradePercentages.french) / 3;
+    const socialAvg = (gradePercentages.history + gradePercentages.geography + gradePercentages.sociology + gradePercentages.philosophy) / 4;
+    const businessAvg = (gradePercentages.economics + gradePercentages.mathematics + (gradePercentages.english + gradePercentages.french) / 2) / 3;
+
+    // Set minimum threshold for recommendations
+    const MIN_THRESHOLD = 65;
+
+    // Engineering - Requires strong Math + Physics combination
+    if (gradePercentages.mathematics >= 75 && gradePercentages.physics >= 70 && stemAvg >= 72) {
+      const engineeringScore = stemAvg + (gradePercentages.mathematics - 70) * 0.3;
+      recommendations.push({
         major: "Engineering",
-        match: 0,
+        match: Math.min(95, engineeringScore),
         description: "Design and build solutions to technical problems using mathematics and science.",
-        reasons: []
-      },
-      computerScience: {
-        major: "Computer Science",
-        match: 0,
-        description: "Develop software, algorithms, and computing systems.",
-        reasons: []
-      },
-      medicine: {
-        major: "Medicine/Pre-Med",
-        match: 0,
-        description: "Study human health, disease prevention, and medical treatment.",
-        reasons: []
-      },
-      business: {
-        major: "Business Administration",
-        match: 0,
-        description: "Learn management, finance, and organizational leadership.",
-        reasons: []
-      },
-      literature: {
-        major: "Literature & Languages",
-        match: 0,
-        description: "Study languages, literature, and communication.",
-        reasons: []
-      },
-      socialSciences: {
-        major: "Social Sciences",
-        match: 0,
-        description: "Study human behavior, society, and social relationships.",
-        reasons: []
-      },
-      economics: {
-        major: "Economics",
-        match: 0,
-        description: "Analyze economic systems, markets, and financial behavior.",
-        reasons: []
-      },
-      philosophy: {
-        major: "Philosophy",
-        match: 0,
-        description: "Explore fundamental questions about existence, knowledge, and ethics.",
-        reasons: []
+        reasons: [
+          `Strong mathematics foundation (${grades.mathematics}/20)`,
+          `Excellent physics understanding (${grades.physics}/20)`,
+          `STEM subjects average: ${Math.round(stemAvg)}%`
+        ]
+      });
+    }
+
+    // Computer Science - Math + Logic focus
+    if (gradePercentages.mathematics >= 70 && (gradePercentages.physics >= 65 || gradePercentages.economics >= 65)) {
+      const csScore = gradePercentages.mathematics * 0.6 + gradePercentages.physics * 0.25 + gradePercentages.english * 0.15;
+      if (csScore >= MIN_THRESHOLD) {
+        recommendations.push({
+          major: "Computer Science",
+          match: Math.min(92, csScore),
+          description: "Develop software, algorithms, and computing systems.",
+          reasons: [
+            `Strong mathematical reasoning (${grades.mathematics}/20)`,
+            `Logical problem-solving abilities`,
+            gradePercentages.physics >= 65 ? `Physics foundation supports computational thinking` : `Economics background aids algorithmic thinking`
+          ]
+        });
       }
-    };
-
-    // Base score calculation - start with minimum viable scores
-    const avgGrade = Object.values(gradePercentages).reduce((a, b) => a + b, 0) / Object.values(gradePercentages).length;
-    const baseScore = Math.max(30, avgGrade * 0.4); // Minimum 30% base score
-
-    // Apply base score to all majors
-    Object.keys(rules).forEach(key => {
-      rules[key].match = baseScore;
-    });
-
-    // Engineering - Strong in Math, Physics, Chemistry
-    const engineeringScore = (gradePercentages.mathematics * 0.4 + gradePercentages.physics * 0.3 + gradePercentages.chemistry * 0.3);
-    if (engineeringScore >= 70) {
-      rules.engineering.match = Math.min(95, baseScore + (engineeringScore - 50) * 0.8);
-      rules.engineering.reasons.push("Excellent performance in mathematics and sciences");
-    } else if (engineeringScore >= 60) {
-      rules.engineering.match = Math.min(85, baseScore + (engineeringScore - 50) * 0.6);
-      rules.engineering.reasons.push("Strong mathematics and physics foundation");
     }
 
-    // Computer Science - Math + logical thinking
-    const csScore = (gradePercentages.mathematics * 0.5 + gradePercentages.physics * 0.3 + gradePercentages.english * 0.2);
-    if (csScore >= 70) {
-      rules.computerScience.match = Math.min(92, baseScore + (csScore - 50) * 0.7);
-      rules.computerScience.reasons.push("Strong mathematical and logical reasoning skills");
+    // Medicine - Bio + Chem + Physics trinity
+    if (gradePercentages.biology >= 75 && gradePercentages.chemistry >= 70 && bioMedAvg >= 72) {
+      const medScore = bioMedAvg + (gradePercentages.biology - 70) * 0.4;
+      recommendations.push({
+        major: "Medicine/Pre-Med",
+        match: Math.min(97, medScore),
+        description: "Study human health, disease prevention, and medical treatment.",
+        reasons: [
+          `Outstanding biology performance (${grades.biology}/20)`,
+          `Strong chemistry foundation (${grades.chemistry}/20)`,
+          `Medical sciences average: ${Math.round(bioMedAvg)}%`
+        ]
+      });
     }
 
-    // Medicine - Biology, Chemistry, Physics
-    const medScore = (gradePercentages.biology * 0.4 + gradePercentages.chemistry * 0.3 + gradePercentages.physics * 0.3);
-    if (medScore >= 75) {
-      rules.medicine.match = Math.min(97, baseScore + (medScore - 50) * 0.9);
-      rules.medicine.reasons.push("Outstanding performance in medical sciences");
-    } else if (medScore >= 65) {
-      rules.medicine.match = Math.min(85, baseScore + (medScore - 50) * 0.7);
-      rules.medicine.reasons.push("Strong foundation in biological sciences");
+    // Pharmacy - Chemistry focused with Biology
+    if (gradePercentages.chemistry >= 75 && gradePercentages.biology >= 65 && gradePercentages.mathematics >= 60) {
+      const pharmScore = gradePercentages.chemistry * 0.5 + gradePercentages.biology * 0.3 + gradePercentages.mathematics * 0.2;
+      if (pharmScore >= MIN_THRESHOLD) {
+        recommendations.push({
+          major: "Pharmacy",
+          match: Math.min(90, pharmScore),
+          description: "Study drug development, medication management, and pharmaceutical sciences.",
+          reasons: [
+            `Excellent chemistry mastery (${grades.chemistry}/20)`,
+            `Strong biological sciences foundation`,
+            `Mathematical skills for pharmaceutical calculations`
+          ]
+        });
+      }
     }
 
-    // Business - Economics, Math, Languages
-    const businessScore = (gradePercentages.economics * 0.4 + gradePercentages.mathematics * 0.3 + (gradePercentages.english + gradePercentages.french) / 2 * 0.3);
-    if (businessScore >= 70) {
-      rules.business.match = Math.min(90, baseScore + (businessScore - 50) * 0.6);
-      rules.business.reasons.push("Strong economic understanding and communication skills");
+    // Business Administration - Economics + Math + Languages
+    if (gradePercentages.economics >= 70 && businessAvg >= 68) {
+      const businessScore = businessAvg + (gradePercentages.economics - 65) * 0.3;
+      recommendations.push({
+        major: "Business Administration",
+        match: Math.min(88, businessScore),
+        description: "Learn management, finance, and organizational leadership.",
+        reasons: [
+          `Strong economics understanding (${grades.economics}/20)`,
+          `Good mathematical skills for financial analysis`,
+          `Language skills for international business communication`
+        ]
+      });
     }
 
-    // Literature - Languages and Philosophy
-    const literatureScore = (gradePercentages.arabic * 0.3 + gradePercentages.english * 0.3 + gradePercentages.french * 0.25 + gradePercentages.philosophy * 0.15);
-    if (literatureScore >= 70) {
-      rules.literature.match = Math.min(88, baseScore + (literatureScore - 50) * 0.6);
-      rules.literature.reasons.push("Excellent language and literary analysis skills");
+    // Literature & Languages - Strong in multiple languages
+    if (languagesAvg >= 72 && (gradePercentages.arabic >= 70 || gradePercentages.english >= 70 || gradePercentages.french >= 70)) {
+      const litScore = languagesAvg + (Math.max(gradePercentages.arabic, gradePercentages.english, gradePercentages.french) - 70) * 0.2;
+      recommendations.push({
+        major: "Literature & Languages",
+        match: Math.min(85, litScore),
+        description: "Study languages, literature, and communication.",
+        reasons: [
+          `Strong multilingual abilities (Avg: ${Math.round(languagesAvg)}%)`,
+          `Excellent communication skills`,
+          gradePercentages.philosophy >= 65 ? `Philosophy enhances literary analysis` : `Strong foundation in language studies`
+        ]
+      });
     }
 
-    // Social Sciences - History, Geography, Sociology, Philosophy
-    const socialScore = (gradePercentages.history * 0.25 + gradePercentages.geography * 0.25 + gradePercentages.sociology * 0.25 + gradePercentages.philosophy * 0.25);
-    if (socialScore >= 70) {
-      rules.socialSciences.match = Math.min(85, baseScore + (socialScore - 50) * 0.5);
-      rules.socialSciences.reasons.push("Strong understanding of social dynamics and human behavior");
+    // Psychology - Social sciences with specific focus
+    if (gradePercentages.sociology >= 70 && gradePercentages.philosophy >= 65 && socialAvg >= 68) {
+      const psychScore = (gradePercentages.sociology * 0.4 + gradePercentages.philosophy * 0.3 + gradePercentages.biology * 0.2 + gradePercentages.english * 0.1);
+      if (psychScore >= MIN_THRESHOLD) {
+        recommendations.push({
+          major: "Psychology",
+          match: Math.min(83, psychScore),
+          description: "Study human behavior, mental processes, and therapeutic techniques.",
+          reasons: [
+            `Strong understanding of human behavior (Sociology: ${grades.sociology}/20)`,
+            `Philosophical thinking for psychological analysis`,
+            gradePercentages.biology >= 60 ? `Biology background supports neuropsychology` : `Strong social science foundation`
+          ]
+        });
+      }
     }
 
-    // Economics
-    const economicsScore = (gradePercentages.economics * 0.5 + gradePercentages.mathematics * 0.3 + gradePercentages.philosophy * 0.2);
-    if (economicsScore >= 70) {
-      rules.economics.match = Math.min(87, baseScore + (economicsScore - 50) * 0.6);
-      rules.economics.reasons.push("Strong analytical and economic reasoning skills");
+    // Economics (Specialized) - Economics + Math + Philosophy
+    if (gradePercentages.economics >= 75 && gradePercentages.mathematics >= 70) {
+      const econScore = gradePercentages.economics * 0.5 + gradePercentages.mathematics * 0.3 + gradePercentages.philosophy * 0.2;
+      if (econScore >= MIN_THRESHOLD) {
+        recommendations.push({
+          major: "Economics",
+          match: Math.min(87, econScore),
+          description: "Analyze economic systems, markets, and financial behavior.",
+          reasons: [
+            `Outstanding economics performance (${grades.economics}/20)`,
+            `Strong mathematical foundation for economic modeling`,
+            gradePercentages.philosophy >= 65 ? `Philosophical thinking enhances economic theory` : `Analytical skills for market analysis`
+          ]
+        });
+      }
     }
 
-    // Philosophy
-    const philosophyScore = (gradePercentages.philosophy * 0.5 + gradePercentages.arabic * 0.25 + gradePercentages.history * 0.25);
-    if (philosophyScore >= 70) {
-      rules.philosophy.match = Math.min(83, baseScore + (philosophyScore - 50) * 0.5);
-      rules.philosophy.reasons.push("Deep philosophical thinking and analytical skills");
+    // International Relations - Languages + Social Sciences
+    if (languagesAvg >= 70 && socialAvg >= 65 && (gradePercentages.english >= 70 || gradePercentages.french >= 70)) {
+      const irScore = (languagesAvg * 0.4 + socialAvg * 0.4 + gradePercentages.economics * 0.2);
+      if (irScore >= MIN_THRESHOLD) {
+        recommendations.push({
+          major: "International Relations",
+          match: Math.min(80, irScore),
+          description: "Study global politics, diplomacy, and international cooperation.",
+          reasons: [
+            `Strong language skills for international communication`,
+            `Good understanding of social and political dynamics`,
+            gradePercentages.economics >= 65 ? `Economics background for understanding global markets` : `Historical knowledge of international events`
+          ]
+        });
+      }
     }
 
-    // Sort by match score and ensure we have meaningful recommendations
-    const sortedRecommendations = Object.values(rules)
-      .filter(rule => rule.match >= 30) // Only show if above minimum threshold
-      .sort((a, b) => b.match - a.match);
+    // Sort by match score and limit to meaningful recommendations
+    const sortedRecommendations = recommendations
+      .filter(rec => rec.match >= 60) // Only show strong matches
+      .sort((a, b) => b.match - a.match)
+      .slice(0, 6); // Limit to top 6 recommendations
 
-    // Boost the top recommendation if it's too low
-    if (sortedRecommendations.length > 0 && sortedRecommendations[0].match < 60) {
-      const boost = 65 - sortedRecommendations[0].match;
-      sortedRecommendations[0].match = 65;
-      sortedRecommendations[0].reasons.push("Best match based on your academic profile");
+    // Ensure we have at least one recommendation
+    if (sortedRecommendations.length === 0) {
+      const avgGrade = Object.values(gradePercentages).reduce((a, b) => a + b, 0) / Object.values(gradePercentages).length;
+      sortedRecommendations.push({
+        major: "Liberal Arts",
+        match: Math.max(60, avgGrade),
+        description: "A broad field that allows you to explore various interests while developing critical thinking skills.",
+        reasons: [
+          "Well-rounded academic performance",
+          "Opportunity to explore multiple disciplines",
+          "Foundation for various career paths"
+        ]
+      });
     }
 
     setRecommendations(sortedRecommendations);
@@ -284,7 +328,7 @@ const GradesAnalysis = () => {
               </Card>
             ))}
 
-            {/* Show More/Less Button */}
+            {/* Show More/Less Button - Only show if there are more than 3 recommendations */}
             {recommendations.length > 3 && (
               <div className="flex justify-center">
                 <Button
