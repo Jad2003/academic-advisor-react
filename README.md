@@ -3,49 +3,28 @@
 
 A modern web application built with React, TypeScript, and Tailwind CSS that helps students discover career paths through personality assessments and grade analysis.
 
-## 🚀 Quick Start for Beginners
+## 🚀 Quick Start
 
 ### Prerequisites
 1. **Node.js** (version 18 or higher) - [Download here](https://nodejs.org/)
-2. **Visual Studio Code** - [Download here](https://code.visualstudio.com/)
-
-### Recommended VS Code Extensions
-Install these extensions for the best development experience:
-- **ES7+ React/Redux/React-Native snippets** - For React code snippets
-- **Auto Rename Tag** - Automatically rename paired HTML/JSX tags
-- **Bracket Pair Colorizer 2** - Color matching brackets
-- **Prettier - Code formatter** - Auto-format your code
-- **Thunder Client** - Test APIs (like Postman)
-- **Live Server** - Preview HTML files
-- **GitLens** - Enhanced Git capabilities
+2. **Code Editor** - [VS Code recommended](https://code.visualstudio.com/)
 
 ### 📦 Installation Steps
 
-1. **Clone or download the project**
-2. **Open VS Code** and open the project folder
-3. **Open the terminal** in VS Code (`Terminal` → `New Terminal`)
-4. **Install dependencies**:
+1. **Clone the repository**
+2. **Install dependencies**:
    ```bash
    npm install
    ```
-5. **Start the development server**:
+3. **Start the development server**:
    ```bash
    npm run dev
    ```
-6. **Open your browser** and go to the URL shown in terminal (usually `http://localhost:5173`)
+4. **Open your browser** and go to the URL shown in terminal (usually `http://localhost:5173`)
 
-### 🌐 Making Your Site Accessible to Others
+### 🌐 Deployment Options
 
-#### Option 1: Local Network Access
-1. Find your local IP address:
-   - Windows: Run `ipconfig` in command prompt
-   - Mac/Linux: Run `ifconfig` in terminal
-2. Share your IP with the port: `http://YOUR_IP:5173`
-3. Others on the same WiFi can access it
-
-#### Option 2: Deploy Online (Free)
-
-**Using Netlify (Recommended):**
+**Using Netlify:**
 1. Create account at [netlify.com](https://netlify.com)
 2. Run `npm run build` in your terminal
 3. Drag the `dist` folder to Netlify
@@ -55,12 +34,6 @@ Install these extensions for the best development experience:
 1. Create account at [vercel.com](https://vercel.com)
 2. Connect your GitHub repository
 3. Auto-deploy on every push
-
-**Using GitHub Pages:**
-1. Push code to GitHub repository
-2. Go to repository Settings → Pages
-3. Select source branch
-4. Get your GitHub Pages URL
 
 ## 📁 Project Structure
 
@@ -101,31 +74,13 @@ src/
 - **React Router** - Client-side routing
 - **Lucide React** - Beautiful icons
 
-## 🔧 Troubleshooting
+## 🔧 Features
 
-**Common Issues:**
-1. **Port already in use**: Try `npm run dev -- --port 3001`
-2. **Dependencies issues**: Delete `node_modules` and run `npm install` again
-3. **Build errors**: Check the terminal for specific error messages
-
-**Getting Help:**
-- Check the browser console (F12) for errors
-- Look at the terminal output for build errors
-- Use VS Code's built-in debugging tools
-
-## 📚 Learning Resources
-
-- [React Documentation](https://react.dev/)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [Tailwind CSS Docs](https://tailwindcss.com/docs)
-- [VS Code Tips](https://code.visualstudio.com/docs/getstarted/tips-and-tricks)
-
-## 🤝 Contributing
-
-1. Make changes to your code
-2. Test thoroughly
-3. Commit with clear messages
-4. Push to your repository
+- **Grade-Based Analysis** - Rule-based algorithm for major recommendations
+- **Personality Assessment** - AI-powered personality matching
+- **Job Opportunities** - Career guidance and salary information
+- **Responsive Design** - Works on all devices
+- **Modern UI** - Clean and intuitive interface
 
 ## 📄 License
 
