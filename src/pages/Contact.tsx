@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
 import { useState } from "react";
 
 const Contact = () => {
@@ -123,7 +123,7 @@ const Contact = () => {
                     <Phone className="h-5 w-5 text-blue-600 mt-1" />
                     <div>
                       <div className="font-semibold">Phone</div>
-                      <div className="text-gray-600">+1 (555) 123-4567</div>
+                      <div className="text-gray-600">+961 1 234 567</div>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
@@ -131,19 +131,8 @@ const Contact = () => {
                     <div>
                       <div className="font-semibold">Address</div>
                       <div className="text-gray-600">
-                        123 Education Street<br />
-                        Learning City, LC 12345
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <Clock className="h-5 w-5 text-blue-600 mt-1" />
-                    <div>
-                      <div className="font-semibold">Business Hours</div>
-                      <div className="text-gray-600">
-                        Monday - Friday: 9:00 AM - 6:00 PM<br />
-                        Saturday: 10:00 AM - 4:00 PM<br />
-                        Sunday: Closed
+                        Hamra Street, Ras Beirut<br />
+                        Beirut, Lebanon
                       </div>
                     </div>
                   </div>

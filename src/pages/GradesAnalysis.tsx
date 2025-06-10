@@ -12,7 +12,6 @@ import JobOpportunities from "@/components/JobOpportunities";
 interface Grades {
   arabic: number;
   english: number;
-  french: number;
   mathematics: number;
   physics: number;
   chemistry: number;
@@ -35,7 +34,6 @@ const GradesAnalysis = () => {
   const [grades, setGrades] = useState<Grades>({
     arabic: 0,
     english: 0,
-    french: 0,
     mathematics: 0,
     physics: 0,
     chemistry: 0,
@@ -69,9 +67,9 @@ const GradesAnalysis = () => {
     // Calculate subject group averages for better precision
     const stemAvg = (gradePercentages.mathematics + gradePercentages.physics + gradePercentages.chemistry) / 3;
     const bioMedAvg = (gradePercentages.biology + gradePercentages.chemistry + gradePercentages.physics) / 3;
-    const languagesAvg = (gradePercentages.arabic + gradePercentages.english + gradePercentages.french) / 3;
+    const languagesAvg = (gradePercentages.arabic + gradePercentages.english) / 2;
     const socialAvg = (gradePercentages.history + gradePercentages.geography + gradePercentages.sociology + gradePercentages.philosophy) / 4;
-    const businessAvg = (gradePercentages.economics + gradePercentages.mathematics + (gradePercentages.english + gradePercentages.french) / 2) / 3;
+    const businessAvg = (gradePercentages.economics + gradePercentages.mathematics + gradePercentages.english) / 3;
 
     // Set minimum threshold for recommendations
     const MIN_THRESHOLD = 65;
@@ -112,7 +110,7 @@ const GradesAnalysis = () => {
     if (gradePercentages.biology >= 75 && gradePercentages.chemistry >= 70 && bioMedAvg >= 72) {
       const medScore = bioMedAvg + (gradePercentages.biology - 70) * 0.4;
       recommendations.push({
-        major: "Medicine/Pre-Med",
+        major: "Medicine",
         match: Math.min(97, medScore),
         description: "Study human health, disease prevention, and medical treatment.",
         reasons: [
@@ -140,6 +138,57 @@ const GradesAnalysis = () => {
       }
     }
 
+    // Architecture
+    if (gradePercentages.mathematics >= 65 && gradePercentages.physics >= 60 && gradePercentages.geography >= 65) {
+      const archScore = (gradePercentages.mathematics * 0.3 + gradePercentages.physics * 0.3 + gradePercentages.geography * 0.4);
+      if (archScore >= MIN_THRESHOLD) {
+        recommendations.push({
+          major: "Architecture",
+          match: Math.min(85, archScore),
+          description: "Design buildings and spaces that combine functionality with aesthetic appeal.",
+          reasons: [
+            `Mathematical skills for structural calculations`,
+            `Physics understanding for building mechanics`,
+            `Geographic awareness for environmental design`
+          ]
+        });
+      }
+    }
+
+    // Dentistry
+    if (gradePercentages.biology >= 70 && gradePercentages.chemistry >= 68 && gradePercentages.physics >= 60) {
+      const dentScore = gradePercentages.biology * 0.4 + gradePercentages.chemistry * 0.35 + gradePercentages.physics * 0.25;
+      if (dentScore >= MIN_THRESHOLD) {
+        recommendations.push({
+          major: "Dentistry",
+          match: Math.min(88, dentScore),
+          description: "Provide oral healthcare and dental treatment to patients.",
+          reasons: [
+            `Strong biological sciences foundation`,
+            `Chemistry knowledge for dental materials`,
+            `Physics understanding for dental procedures`
+          ]
+        });
+      }
+    }
+
+    // Nursing
+    if (gradePercentages.biology >= 65 && gradePercentages.chemistry >= 60 && gradePercentages.english >= 65) {
+      const nursingScore = gradePercentages.biology * 0.4 + gradePercentages.chemistry * 0.3 + gradePercentages.english * 0.3;
+      if (nursingScore >= MIN_THRESHOLD) {
+        recommendations.push({
+          major: "Nursing",
+          match: Math.min(82, nursingScore),
+          description: "Provide direct patient care and health education.",
+          reasons: [
+            `Biological sciences knowledge for patient care`,
+            `Chemistry background for medication understanding`,
+            `Communication skills for patient interaction`
+          ]
+        });
+      }
+    }
+
     // Business Administration - Economics + Math + Languages
     if (gradePercentages.economics >= 70 && businessAvg >= 68) {
       const businessScore = businessAvg + (gradePercentages.economics - 65) * 0.3;
@@ -150,20 +199,37 @@ const GradesAnalysis = () => {
         reasons: [
           `Strong economics understanding (${grades.economics}/20)`,
           `Good mathematical skills for financial analysis`,
-          `Language skills for international business communication`
+          `Language skills for business communication`
         ]
       });
     }
 
+    // Law
+    if (gradePercentages.arabic >= 70 && gradePercentages.history >= 68 && gradePercentages.philosophy >= 65) {
+      const lawScore = (gradePercentages.arabic * 0.4 + gradePercentages.history * 0.3 + gradePercentages.philosophy * 0.3);
+      if (lawScore >= MIN_THRESHOLD) {
+        recommendations.push({
+          major: "Law",
+          match: Math.min(85, lawScore),
+          description: "Study legal systems and advocate for justice.",
+          reasons: [
+            `Strong Arabic language skills for legal documents`,
+            `Historical knowledge for legal precedents`,
+            `Philosophical thinking for legal analysis`
+          ]
+        });
+      }
+    }
+
     // Literature & Languages - Strong in multiple languages
-    if (languagesAvg >= 72 && (gradePercentages.arabic >= 70 || gradePercentages.english >= 70 || gradePercentages.french >= 70)) {
-      const litScore = languagesAvg + (Math.max(gradePercentages.arabic, gradePercentages.english, gradePercentages.french) - 70) * 0.2;
+    if (languagesAvg >= 72 && (gradePercentages.arabic >= 70 || gradePercentages.english >= 70)) {
+      const litScore = languagesAvg + (Math.max(gradePercentages.arabic, gradePercentages.english) - 70) * 0.2;
       recommendations.push({
         major: "Literature & Languages",
         match: Math.min(85, litScore),
         description: "Study languages, literature, and communication.",
         reasons: [
-          `Strong multilingual abilities (Avg: ${Math.round(languagesAvg)}%)`,
+          `Strong language abilities (Avg: ${Math.round(languagesAvg)}%)`,
           `Excellent communication skills`,
           gradePercentages.philosophy >= 65 ? `Philosophy enhances literary analysis` : `Strong foundation in language studies`
         ]
@@ -205,7 +271,7 @@ const GradesAnalysis = () => {
     }
 
     // International Relations - Languages + Social Sciences
-    if (languagesAvg >= 70 && socialAvg >= 65 && (gradePercentages.english >= 70 || gradePercentages.french >= 70)) {
+    if (languagesAvg >= 70 && socialAvg >= 65 && gradePercentages.english >= 70) {
       const irScore = (languagesAvg * 0.4 + socialAvg * 0.4 + gradePercentages.economics * 0.2);
       if (irScore >= MIN_THRESHOLD) {
         recommendations.push({
@@ -225,7 +291,7 @@ const GradesAnalysis = () => {
     const sortedRecommendations = recommendations
       .filter(rec => rec.match >= 60) // Only show strong matches
       .sort((a, b) => b.match - a.match)
-      .slice(0, 6); // Limit to top 6 recommendations
+      .slice(0, 4); // Limit to top 4 recommendations
 
     // Ensure we have at least one recommendation
     if (sortedRecommendations.length === 0) {
@@ -255,7 +321,6 @@ const GradesAnalysis = () => {
     setGrades({
       arabic: 0,
       english: 0,
-      french: 0,
       mathematics: 0,
       physics: 0,
       chemistry: 0,
@@ -424,19 +489,6 @@ const GradesAnalysis = () => {
                   step="0.1"
                   value={grades.english || ''}
                   onChange={(e) => handleGradeChange('english', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="french">French</Label>
-                <Input
-                  id="french"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.french || ''}
-                  onChange={(e) => handleGradeChange('french', e.target.value)}
                   placeholder="Grade (0-20)"
                 />
               </div>
