@@ -1,9 +1,9 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap, Brain, BookOpen, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
-import AIAgentDemo from "@/components/AIAgentDemo";
 
 const Index = () => {
   return (
@@ -84,11 +84,6 @@ const Index = () => {
               </Link>
             </CardContent>
           </Card>
-        </div>
-
-        {/* AI Agent Demo - Subtle addition */}
-        <div className="mt-12 max-w-md mx-auto">
-          <AIAgentDemo />
         </div>
 
         {/* Features Section */}
