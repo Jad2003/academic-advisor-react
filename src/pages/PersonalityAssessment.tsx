@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, Brain, Cpu } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import JobOpportunities from "@/components/JobOpportunities";
@@ -24,7 +24,7 @@ const PersonalityAssessment = () => {
     setResults(assessmentResults);
     setShowResults(true);
     setShowAllResults(false);
-    toast.success("Assessment complete! Your personality-based recommendations are ready.");
+    toast.success("AI Agent analysis complete! Your personality-based recommendations are ready.");
   };
 
   const resetAssessment = () => {
@@ -34,8 +34,6 @@ const PersonalityAssessment = () => {
   };
 
   const handlePrevious = () => {
-    // This could be expanded to allow going back through questions
-    // For now, it just goes back to home
     window.history.back();
   };
 
@@ -53,8 +51,21 @@ const PersonalityAssessment = () => {
                 Back Home
               </Button>
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Your Personality-Based Recommendations</h1>
+            <h1 className="text-3xl font-bold text-gray-900">AI Agent Personality Results</h1>
           </div>
+
+          {/* AI Agent Info Banner */}
+          <Card className="max-w-4xl mx-auto mb-6 border-0 shadow-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+            <CardContent className="py-4">
+              <div className="flex items-center">
+                <Cpu className="h-6 w-6 mr-3" />
+                <div>
+                  <h3 className="font-semibold">Advanced AI Agent Analysis</h3>
+                  <p className="text-purple-100 text-sm">LLM-powered reasoning with adaptive question generation and deep personality insights</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Results */}
           <div className="space-y-6 max-w-4xl mx-auto">
@@ -78,7 +89,7 @@ const PersonalityAssessment = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Your personality traits that align:</h4>
+                      <h4 className="font-semibold text-gray-900 mb-2">AI agent identified these personality traits:</h4>
                       <div className="flex flex-wrap gap-2">
                         {result.traits.map((trait, idx) => (
                           <span 
@@ -103,7 +114,7 @@ const PersonalityAssessment = () => {
               </Card>
             ))}
 
-            {/* Show More/Less Button - Only show if there are more than 3 recommendations */}
+            {/* Show More/Less Button */}
             {results.length > 3 && (
               <div className="flex justify-center">
                 <Button
@@ -139,7 +150,7 @@ const PersonalityAssessment = () => {
             </Button>
             <Link to="/grades-analysis">
               <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
-                Try Grade Analysis
+                Try Rule-Based Analysis
               </Button>
             </Link>
           </div>
@@ -160,8 +171,8 @@ const PersonalityAssessment = () => {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Personality Assessment</h1>
-            <p className="text-gray-600 mt-2">Answer adaptive questions to discover your ideal major</p>
+            <h1 className="text-3xl font-bold text-gray-900">AI Agent Personality Assessment</h1>
+            <p className="text-gray-600 mt-2">Advanced AI agent with adaptive reasoning and LLM-powered analysis</p>
           </div>
         </div>
 
