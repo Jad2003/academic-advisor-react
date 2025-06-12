@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, Calculator, BookOpen, ChevronDown, ChevronUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -30,7 +30,10 @@ interface MajorRecommendation {
   reasons: string[];
 }
 
+type BaccalaureateSection = 'GS' | 'LS' | 'SE' | 'LH' | '';
+
 const GradesAnalysis = () => {
+  const [section, setSection] = useState<BaccalaureateSection>('');
   const [grades, setGrades] = useState<Grades>({
     arabic: 0,
     english: 0,
@@ -54,7 +57,12 @@ const GradesAnalysis = () => {
   };
 
   const analyzeGrades = () => {
-    console.log("Analyzing grades:", grades);
+    if (!section) {
+      toast.error("Please select your Baccalaureate section first");
+      return;
+    }
+
+    console.log("Analyzing grades:", grades, "Section:", section);
     
     // Convert grades to percentage for easier calculation (Lebanese system is out of 20)
     const gradePercentages = Object.fromEntries(
@@ -74,9 +82,21 @@ const GradesAnalysis = () => {
     // Set minimum threshold for recommendations
     const MIN_THRESHOLD = 65;
 
+    // Section-specific bonus multipliers
+    const getSectionBonus = (majorType: string): number => {
+      const bonuses: Record<string, Record<BaccalaureateSection, number>> = {
+        'stem': { 'GS': 1.15, 'LS': 1.05, 'SE': 0.95, 'LH': 0.9, '': 1 },
+        'medical': { 'GS': 1.1, 'LS': 1.2, 'SE': 0.9, 'LH': 0.85, '': 1 },
+        'business': { 'GS': 0.95, 'LS': 0.9, 'SE': 1.2, 'LH': 1.0, '': 1 },
+        'humanities': { 'GS': 0.9, 'LS': 0.85, 'SE': 1.1, 'LH': 1.25, '': 1 },
+        'social': { 'GS': 0.9, 'LS': 0.9, 'SE': 1.15, 'LH': 1.1, '': 1 }
+      };
+      return bonuses[majorType]?.[section] || 1;
+    };
+
     // Engineering - Requires strong Math + Physics combination
     if (gradePercentages.mathematics >= 75 && gradePercentages.physics >= 70 && stemAvg >= 72) {
-      const engineeringScore = stemAvg + (gradePercentages.mathematics - 70) * 0.3;
+      const engineeringScore = (stemAvg + (gradePercentages.mathematics - 70) * 0.3) * getSectionBonus('stem');
       recommendations.push({
         major: "Engineering",
         match: Math.min(95, engineeringScore),
@@ -84,14 +104,15 @@ const GradesAnalysis = () => {
         reasons: [
           `Strong mathematics foundation (${grades.mathematics}/20)`,
           `Excellent physics understanding (${grades.physics}/20)`,
-          `STEM subjects average: ${Math.round(stemAvg)}%`
+          `STEM subjects average: ${Math.round(stemAvg)}%`,
+          section === 'GS' ? 'Perfect match with General Sciences background' : `Good fit despite ${section} background`
         ]
       });
     }
 
     // Computer Science - Math + Logic focus
     if (gradePercentages.mathematics >= 70 && (gradePercentages.physics >= 65 || gradePercentages.economics >= 65)) {
-      const csScore = gradePercentages.mathematics * 0.6 + gradePercentages.physics * 0.25 + gradePercentages.english * 0.15;
+      const csScore = (gradePercentages.mathematics * 0.6 + gradePercentages.physics * 0.25 + gradePercentages.english * 0.15) * getSectionBonus('stem');
       if (csScore >= MIN_THRESHOLD) {
         recommendations.push({
           major: "Computer Science",
@@ -100,7 +121,8 @@ const GradesAnalysis = () => {
           reasons: [
             `Strong mathematical reasoning (${grades.mathematics}/20)`,
             `Logical problem-solving abilities`,
-            gradePercentages.physics >= 65 ? `Physics foundation supports computational thinking` : `Economics background aids algorithmic thinking`
+            gradePercentages.physics >= 65 ? `Physics foundation supports computational thinking` : `Economics background aids algorithmic thinking`,
+            section === 'GS' ? 'Excellent alignment with General Sciences' : 'Strong potential despite different background'
           ]
         });
       }
@@ -108,7 +130,7 @@ const GradesAnalysis = () => {
 
     // Medicine - Bio + Chem + Physics trinity
     if (gradePercentages.biology >= 75 && gradePercentages.chemistry >= 70 && bioMedAvg >= 72) {
-      const medScore = bioMedAvg + (gradePercentages.biology - 70) * 0.4;
+      const medScore = (bioMedAvg + (gradePercentages.biology - 70) * 0.4) * getSectionBonus('medical');
       recommendations.push({
         major: "Medicine",
         match: Math.min(97, medScore),
@@ -116,7 +138,8 @@ const GradesAnalysis = () => {
         reasons: [
           `Outstanding biology performance (${grades.biology}/20)`,
           `Strong chemistry foundation (${grades.chemistry}/20)`,
-          `Medical sciences average: ${Math.round(bioMedAvg)}%`
+          `Medical sciences average: ${Math.round(bioMedAvg)}%`,
+          section === 'LS' ? 'Perfect match with Life Sciences background' : section === 'GS' ? 'Great fit with General Sciences' : 'Strong potential despite different background'
         ]
       });
     }
@@ -191,7 +214,7 @@ const GradesAnalysis = () => {
 
     // Business Administration - Economics + Math + Languages
     if (gradePercentages.economics >= 70 && businessAvg >= 68) {
-      const businessScore = businessAvg + (gradePercentages.economics - 65) * 0.3;
+      const businessScore = (businessAvg + (gradePercentages.economics - 65) * 0.3) * getSectionBonus('business');
       recommendations.push({
         major: "Business Administration",
         match: Math.min(88, businessScore),
@@ -199,14 +222,15 @@ const GradesAnalysis = () => {
         reasons: [
           `Strong economics understanding (${grades.economics}/20)`,
           `Good mathematical skills for financial analysis`,
-          `Language skills for business communication`
+          `Language skills for business communication`,
+          section === 'SE' ? 'Perfect alignment with Sociology and Economics' : 'Good potential for business studies'
         ]
       });
     }
 
     // Law
     if (gradePercentages.arabic >= 70 && gradePercentages.history >= 68 && gradePercentages.philosophy >= 65) {
-      const lawScore = (gradePercentages.arabic * 0.4 + gradePercentages.history * 0.3 + gradePercentages.philosophy * 0.3);
+      const lawScore = (gradePercentages.arabic * 0.4 + gradePercentages.history * 0.3 + gradePercentages.philosophy * 0.3) * getSectionBonus('humanities');
       if (lawScore >= MIN_THRESHOLD) {
         recommendations.push({
           major: "Law",
@@ -215,7 +239,8 @@ const GradesAnalysis = () => {
           reasons: [
             `Strong Arabic language skills for legal documents`,
             `Historical knowledge for legal precedents`,
-            `Philosophical thinking for legal analysis`
+            `Philosophical thinking for legal analysis`,
+            section === 'LH' ? 'Excellent match with Literature and Humanities' : section === 'SE' ? 'Good fit with social sciences background' : 'Strong potential for legal studies'
           ]
         });
       }
@@ -223,7 +248,7 @@ const GradesAnalysis = () => {
 
     // Literature & Languages - Strong in multiple languages
     if (languagesAvg >= 72 && (gradePercentages.arabic >= 70 || gradePercentages.english >= 70)) {
-      const litScore = languagesAvg + (Math.max(gradePercentages.arabic, gradePercentages.english) - 70) * 0.2;
+      const litScore = (languagesAvg + (Math.max(gradePercentages.arabic, gradePercentages.english) - 70) * 0.2) * getSectionBonus('humanities');
       recommendations.push({
         major: "Literature & Languages",
         match: Math.min(85, litScore),
@@ -231,14 +256,15 @@ const GradesAnalysis = () => {
         reasons: [
           `Strong language abilities (Avg: ${Math.round(languagesAvg)}%)`,
           `Excellent communication skills`,
-          gradePercentages.philosophy >= 65 ? `Philosophy enhances literary analysis` : `Strong foundation in language studies`
+          gradePercentages.philosophy >= 65 ? `Philosophy enhances literary analysis` : `Strong foundation in language studies`,
+          section === 'LH' ? 'Perfect match with Literature and Humanities background' : 'Good foundation for language studies'
         ]
       });
     }
 
     // Psychology - Social sciences with specific focus
     if (gradePercentages.sociology >= 70 && gradePercentages.philosophy >= 65 && socialAvg >= 68) {
-      const psychScore = (gradePercentages.sociology * 0.4 + gradePercentages.philosophy * 0.3 + gradePercentages.biology * 0.2 + gradePercentages.english * 0.1);
+      const psychScore = (gradePercentages.sociology * 0.4 + gradePercentages.philosophy * 0.3 + gradePercentages.biology * 0.2 + gradePercentages.english * 0.1) * getSectionBonus('social');
       if (psychScore >= MIN_THRESHOLD) {
         recommendations.push({
           major: "Psychology",
@@ -247,7 +273,8 @@ const GradesAnalysis = () => {
           reasons: [
             `Strong understanding of human behavior (Sociology: ${grades.sociology}/20)`,
             `Philosophical thinking for psychological analysis`,
-            gradePercentages.biology >= 60 ? `Biology background supports neuropsychology` : `Strong social science foundation`
+            gradePercentages.biology >= 60 ? `Biology background supports neuropsychology` : `Strong social science foundation`,
+            section === 'SE' || section === 'LH' ? 'Great alignment with your academic background' : 'Strong potential for psychology'
           ]
         });
       }
@@ -303,7 +330,8 @@ const GradesAnalysis = () => {
         reasons: [
           "Well-rounded academic performance",
           "Opportunity to explore multiple disciplines",
-          "Foundation for various career paths"
+          "Foundation for various career paths",
+          `Your ${section} background provides a good foundation for interdisciplinary studies`
         ]
       });
     }
@@ -318,6 +346,7 @@ const GradesAnalysis = () => {
     setShowResults(false);
     setRecommendations([]);
     setShowAllRecommendations(false);
+    setSection('');
     setGrades({
       arabic: 0,
       english: 0,
@@ -460,154 +489,182 @@ const GradesAnalysis = () => {
           <CardHeader>
             <CardTitle className="flex items-center text-gray-900">
               <Calculator className="h-6 w-6 mr-2 text-blue-600" />
-              Enter Your Lebanese Baccalaureate Grades
+              Enter Your Lebanese Baccalaureate Information
             </CardTitle>
-            <p className="text-sm text-gray-600">Please enter your grades (0-20) for each subject</p>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="arabic">Arabic</Label>
-                <Input
-                  id="arabic"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.arabic || ''}
-                  onChange={(e) => handleGradeChange('arabic', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="english">English</Label>
-                <Input
-                  id="english"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.english || ''}
-                  onChange={(e) => handleGradeChange('english', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="mathematics">Mathematics</Label>
-                <Input
-                  id="mathematics"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.mathematics || ''}
-                  onChange={(e) => handleGradeChange('mathematics', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="physics">Physics</Label>
-                <Input
-                  id="physics"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.physics || ''}
-                  onChange={(e) => handleGradeChange('physics', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="chemistry">Chemistry</Label>
-                <Input
-                  id="chemistry"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.chemistry || ''}
-                  onChange={(e) => handleGradeChange('chemistry', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="biology">Biology</Label>
-                <Input
-                  id="biology"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.biology || ''}
-                  onChange={(e) => handleGradeChange('biology', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="history">History</Label>
-                <Input
-                  id="history"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.history || ''}
-                  onChange={(e) => handleGradeChange('history', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="geography">Geography</Label>
-                <Input
-                  id="geography"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.geography || ''}
-                  onChange={(e) => handleGradeChange('geography', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="philosophy">Philosophy</Label>
-                <Input
-                  id="philosophy"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.philosophy || ''}
-                  onChange={(e) => handleGradeChange('philosophy', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="economics">Economics</Label>
-                <Input
-                  id="economics"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.economics || ''}
-                  onChange={(e) => handleGradeChange('economics', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sociology">Sociology</Label>
-                <Input
-                  id="sociology"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.sociology || ''}
-                  onChange={(e) => handleGradeChange('sociology', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
+            {/* Baccalaureate Section Selection */}
+            <div className="space-y-4">
+              <Label className="text-base font-semibold text-gray-900">Select your Baccalaureate Section</Label>
+              <RadioGroup value={section} onValueChange={(value) => setSection(value as BaccalaureateSection)}>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="GS" id="GS" />
+                    <Label htmlFor="GS" className="cursor-pointer">General Sciences (GS)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="LS" id="LS" />
+                    <Label htmlFor="LS" className="cursor-pointer">Life Sciences (LS)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="SE" id="SE" />
+                    <Label htmlFor="SE" className="cursor-pointer">Sociology and Economics (SE)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="LH" id="LH" />
+                    <Label htmlFor="LH" className="cursor-pointer">Literature and Humanities (LH)</Label>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Grades Input */}
+            <div className="space-y-4">
+              <Label className="text-base font-semibold text-gray-900">Enter Your Grades (0-20)</Label>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="arabic">Arabic</Label>
+                  <Input
+                    id="arabic"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.arabic || ''}
+                    onChange={(e) => handleGradeChange('arabic', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="english">English</Label>
+                  <Input
+                    id="english"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.english || ''}
+                    onChange={(e) => handleGradeChange('english', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mathematics">Mathematics</Label>
+                  <Input
+                    id="mathematics"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.mathematics || ''}
+                    onChange={(e) => handleGradeChange('mathematics', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="physics">Physics</Label>
+                  <Input
+                    id="physics"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.physics || ''}
+                    onChange={(e) => handleGradeChange('physics', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="chemistry">Chemistry</Label>
+                  <Input
+                    id="chemistry"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.chemistry || ''}
+                    onChange={(e) => handleGradeChange('chemistry', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="biology">Biology</Label>
+                  <Input
+                    id="biology"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.biology || ''}
+                    onChange={(e) => handleGradeChange('biology', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="history">History</Label>
+                  <Input
+                    id="history"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.history || ''}
+                    onChange={(e) => handleGradeChange('history', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="geography">Geography</Label>
+                  <Input
+                    id="geography"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.geography || ''}
+                    onChange={(e) => handleGradeChange('geography', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="philosophy">Philosophy</Label>
+                  <Input
+                    id="philosophy"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.philosophy || ''}
+                    onChange={(e) => handleGradeChange('philosophy', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="economics">Economics</Label>
+                  <Input
+                    id="economics"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.economics || ''}
+                    onChange={(e) => handleGradeChange('economics', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sociology">Sociology</Label>
+                  <Input
+                    id="sociology"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.sociology || ''}
+                    onChange={(e) => handleGradeChange('sociology', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
               </div>
             </div>
 
