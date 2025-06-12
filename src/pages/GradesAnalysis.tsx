@@ -22,7 +22,6 @@ interface Grades {
   philosophy: number;
   economics: number;
   sociology: number;
-  french: number;
 }
 
 const GradesAnalysis = () => {
@@ -39,7 +38,6 @@ const GradesAnalysis = () => {
     philosophy: 0,
     economics: 0,
     sociology: 0,
-    french: 0,
   });
   const [recommendations, setRecommendations] = useState<MajorRecommendation[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -80,7 +78,6 @@ const GradesAnalysis = () => {
       philosophy: 0,
       economics: 0,
       sociology: 0,
-      french: 0,
     });
   };
 

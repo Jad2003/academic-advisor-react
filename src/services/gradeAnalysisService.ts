@@ -7,7 +7,6 @@ export interface GradeData {
   biology: number;
   arabic: number;
   english: number;
-  french: number;
   philosophy: number;
   sociology: number;
   economics: number;
@@ -24,10 +23,10 @@ export interface MajorRecommendation {
 }
 
 export const subjectsBySection: Record<Exclude<BaccalaureateSection, ''>, (keyof GradeData)[]> = {
-  GS: ['mathematics', 'physics', 'chemistry', 'arabic', 'english', 'french', 'philosophy', 'history', 'geography'],
-  LS: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'french', 'philosophy', 'history', 'geography'],
-  SE: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'french', 'philosophy', 'sociology', 'economics', 'history', 'geography'],
-  LH: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'french', 'philosophy', 'sociology', 'economics', 'history', 'geography']
+  GS: ['mathematics', 'physics', 'chemistry', 'arabic', 'english', 'philosophy', 'history', 'geography'],
+  LS: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'philosophy', 'history', 'geography'],
+  SE: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'philosophy', 'sociology', 'economics', 'history', 'geography'],
+  LH: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'philosophy', 'sociology', 'economics', 'history', 'geography']
 };
 
 export class GradeAnalysisService {
@@ -47,7 +46,7 @@ export class GradeAnalysisService {
       ? validGrades.reduce((sum, grade) => sum + grade, 0) / validGrades.length 
       : 0;
 
-    // Engineering recommendation
+    // Engineering recommendation - improved scoring for GS section
     const engineeringScore = this.calculateEngineeringScore(grades, section);
     if (engineeringScore > 0) {
       recommendations.push({
@@ -153,14 +152,17 @@ export class GradeAnalysisService {
     
     if (mathGrade === 0 && physicsGrade === 0) return 0;
     
-    let baseScore = (mathGrade * 0.4 + physicsGrade * 0.4 + chemistryGrade * 0.2);
+    let baseScore = (mathGrade * 0.5 + physicsGrade * 0.4 + chemistryGrade * 0.1);
     
-    // Section-specific adjustments
-    if (section === 'GS' || section === 'LS') {
-      baseScore *= 1.1; // Boost for science sections
+    // Higher boost for GS section since it's most aligned with engineering
+    if (section === 'GS') {
+      baseScore *= 1.3; // Significant boost for GS
+    } else if (section === 'LS') {
+      baseScore *= 1.1; // Moderate boost for LS
     }
     
-    return Math.max(0, (baseScore - 10) * 5);
+    // Improved scoring to make engineering more prominent for good science grades
+    return Math.max(0, (baseScore - 8) * 6);
   }
 
   private static calculateComputerScienceScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
