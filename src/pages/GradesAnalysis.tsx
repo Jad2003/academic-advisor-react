@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +52,12 @@ const GradesAnalysis = () => {
 
   const handleAnalyzeGrades = () => {
     if (!section) {
+      toast.error("Please select your Baccalaureate section first");
+      return;
+    }
+
+    // Type guard to ensure section is not empty string
+    if (section === '') {
       toast.error("Please select your Baccalaureate section first");
       return;
     }
@@ -183,7 +188,7 @@ const GradesAnalysis = () => {
             <SectionSelector section={section} onSectionChange={setSection} />
 
             {/* Grades Input */}
-            {section && (
+            {section && section !== '' && (
               <div className="space-y-4">
                 <h3 className="text-base font-semibold text-gray-900">Enter Your Grades (0-20)</h3>
                 <GradesInputSection 
@@ -197,7 +202,7 @@ const GradesAnalysis = () => {
             <Button 
               onClick={handleAnalyzeGrades} 
               className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3"
-              disabled={!section}
+              disabled={!section || section === ''}
             >
               <BookOpen className="h-5 w-5 mr-2" />
               Analyze My Grades

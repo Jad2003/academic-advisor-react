@@ -1,5 +1,4 @@
-
-export type BaccalaureateSection = 'GS' | 'LS' | 'SE' | 'LH';
+export type BaccalaureateSection = 'GS' | 'LS' | 'SE' | 'LH' | '';
 
 export interface GradeData {
   mathematics: number;
@@ -24,7 +23,7 @@ export interface MajorRecommendation {
   suggestedPath: string;
 }
 
-export const subjectsBySection: Record<BaccalaureateSection, (keyof GradeData)[]> = {
+export const subjectsBySection: Record<Exclude<BaccalaureateSection, ''>, (keyof GradeData)[]> = {
   GS: ['mathematics', 'physics', 'chemistry', 'arabic', 'english', 'french', 'philosophy', 'history', 'geography'],
   LS: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'french', 'philosophy', 'history', 'geography'],
   SE: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'french', 'philosophy', 'sociology', 'economics', 'history', 'geography'],
@@ -32,7 +31,7 @@ export const subjectsBySection: Record<BaccalaureateSection, (keyof GradeData)[]
 };
 
 export class GradeAnalysisService {
-  static analyzeGrades(grades: Partial<GradeData>, section: BaccalaureateSection): MajorRecommendation[] {
+  static analyzeGrades(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): MajorRecommendation[] {
     const recommendations: MajorRecommendation[] = [];
     
     // Get average of all entered grades
@@ -142,7 +141,7 @@ export class GradeAnalysisService {
     return recommendations.sort((a, b) => b.matchPercentage - a.matchPercentage);
   }
 
-  private static calculateEngineeringScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+  private static calculateEngineeringScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
     const mathGrade = grades.mathematics || 0;
     const physicsGrade = grades.physics || 0;
     const chemistryGrade = grades.chemistry || 0;
@@ -159,7 +158,7 @@ export class GradeAnalysisService {
     return Math.max(0, (baseScore - 10) * 5);
   }
 
-  private static calculateComputerScienceScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+  private static calculateComputerScienceScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
     const mathGrade = grades.mathematics || 0;
     const physicsGrade = grades.physics || 0;
     const englishGrade = grades.english || 0;
@@ -178,7 +177,7 @@ export class GradeAnalysisService {
     return Math.max(0, (baseScore - 10) * 5);
   }
 
-  private static calculateMedicineScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+  private static calculateMedicineScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
     const biologyGrade = grades.biology || 0;
     const chemistryGrade = grades.chemistry || 0;
     const physicsGrade = grades.physics || 0;
@@ -192,7 +191,7 @@ export class GradeAnalysisService {
     return Math.max(0, (baseScore - 12) * 6);
   }
 
-  private static calculateBusinessScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+  private static calculateBusinessScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
     const mathGrade = grades.mathematics || 0;
     const englishGrade = grades.english || 0;
     const economicsGrade = grades.economics || 0;
@@ -208,7 +207,7 @@ export class GradeAnalysisService {
     return Math.max(0, (baseScore - 10) * 4);
   }
 
-  private static calculatePsychologyScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+  private static calculatePsychologyScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
     const mathGrade = grades.mathematics || 0;
     const englishGrade = grades.english || 0;
     const sociologyGrade = grades.sociology || 0;
@@ -229,7 +228,7 @@ export class GradeAnalysisService {
     return Math.max(0, (baseScore - 10) * 4);
   }
 
-  private static calculateLiteratureScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+  private static calculateLiteratureScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
     const englishGrade = grades.english || 0;
     const arabicGrade = grades.arabic || 0;
     const frenchGrade = grades.french || 0;
@@ -247,7 +246,7 @@ export class GradeAnalysisService {
     return Math.max(0, (baseScore - 10) * 4);
   }
 
-  private static calculateHistoryScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+  private static calculateHistoryScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
     const historyGrade = grades.history || 0;
     const geographyGrade = grades.geography || 0;
     const arabicGrade = grades.arabic || 0;
