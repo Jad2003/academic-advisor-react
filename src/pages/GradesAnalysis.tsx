@@ -9,7 +9,7 @@ import JobOpportunities from "@/components/JobOpportunities";
 import SectionSelector from "@/components/grades/SectionSelector";
 import GradesInputSection from "@/components/grades/GradesInputSection";
 import RecommendationCard from "@/components/grades/RecommendationCard";
-import { analyzeGrades } from "@/services/gradeAnalysisService";
+import { GradeAnalysisService, type MajorRecommendation, type BaccalaureateSection, type GradeData } from "@/services/gradeAnalysisService";
 
 interface Grades {
   arabic: number;
@@ -23,16 +23,8 @@ interface Grades {
   philosophy: number;
   economics: number;
   sociology: number;
+  french: number;
 }
-
-interface MajorRecommendation {
-  major: string;
-  match: number;
-  description: string;
-  reasons: string[];
-}
-
-type BaccalaureateSection = 'GS' | 'LS' | 'SE' | 'LH' | '';
 
 const GradesAnalysis = () => {
   const [section, setSection] = useState<BaccalaureateSection>('');
@@ -48,6 +40,7 @@ const GradesAnalysis = () => {
     philosophy: 0,
     economics: 0,
     sociology: 0,
+    french: 0,
   });
   const [recommendations, setRecommendations] = useState<MajorRecommendation[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -64,7 +57,7 @@ const GradesAnalysis = () => {
       return;
     }
 
-    const analysisResults = analyzeGrades(grades, section);
+    const analysisResults = GradeAnalysisService.analyzeGrades(grades, section);
     setRecommendations(analysisResults);
     setShowResults(true);
     setShowAllRecommendations(false);
@@ -88,6 +81,7 @@ const GradesAnalysis = () => {
       philosophy: 0,
       economics: 0,
       sociology: 0,
+      french: 0,
     });
   };
 
