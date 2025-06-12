@@ -21,7 +21,7 @@ interface Grades {
 }
 
 interface GradesInputSectionProps {
-  section: BaccalaureateSection;
+  section: BaccalaureateSection | '';
   grades: Grades;
   onGradeChange: (subject: keyof Grades, value: string) => void;
 }
@@ -34,11 +34,11 @@ const GradesInputSection = ({ section, grades, onGradeChange }: GradesInputSecti
       { key: 'mathematics' as keyof Grades, label: 'Mathematics' },
       { key: 'physics' as keyof Grades, label: 'Physics' },
       { key: 'chemistry' as keyof Grades, label: 'Chemistry' },
-      ...(section !== 'GS' ? [{ key: 'biology' as keyof Grades, label: 'Biology' }] : []),
+      ...(section !== 'General Sciences' ? [{ key: 'biology' as keyof Grades, label: 'Biology' }] : []),
       { key: 'history' as keyof Grades, label: 'History' },
       { key: 'geography' as keyof Grades, label: 'Geography' },
       { key: 'philosophy' as keyof Grades, label: 'Philosophy' },
-      ...(section === 'SE' || section === 'LH' ? [
+      ...(section === 'Sociology and Economics' || section === 'Literature and Humanities' ? [
         { key: 'economics' as keyof Grades, label: 'Economics' },
         { key: 'sociology' as keyof Grades, label: 'Sociology' },
       ] : []),

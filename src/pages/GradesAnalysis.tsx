@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +26,7 @@ interface Grades {
 }
 
 const GradesAnalysis = () => {
-  const [section, setSection] = useState<BaccalaureateSection>('');
+  const [section, setSection] = useState<BaccalaureateSection | ''>('');
   const [grades, setGrades] = useState<Grades>({
     arabic: 0,
     english: 0,

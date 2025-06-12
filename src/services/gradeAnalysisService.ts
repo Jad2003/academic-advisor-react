@@ -1,4 +1,4 @@
-export type BaccalaureateSection = 'GS' | 'LS' | 'SE' | 'LH' | '';
+export type BaccalaureateSection = 'General Sciences' | 'Life Sciences' | 'Sociology and Economics' | 'Literature and Humanities';
 
 export interface GradeData {
   mathematics: number;
@@ -22,20 +22,15 @@ export interface MajorRecommendation {
   suggestedPath: string;
 }
 
-export const subjectsBySection: Record<Exclude<BaccalaureateSection, ''>, (keyof GradeData)[]> = {
-  GS: ['mathematics', 'physics', 'chemistry', 'arabic', 'english', 'philosophy', 'history', 'geography'],
-  LS: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'philosophy', 'history', 'geography'],
-  SE: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'philosophy', 'sociology', 'economics', 'history', 'geography'],
-  LH: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'philosophy', 'sociology', 'economics', 'history', 'geography']
+export const subjectsBySection: Record<BaccalaureateSection, (keyof GradeData)[]> = {
+  'General Sciences': ['mathematics', 'physics', 'chemistry', 'arabic', 'english', 'philosophy', 'history', 'geography'],
+  'Life Sciences': ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'philosophy', 'history', 'geography'],
+  'Sociology and Economics': ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'philosophy', 'sociology', 'economics', 'history', 'geography'],
+  'Literature and Humanities': ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'philosophy', 'sociology', 'economics', 'history', 'geography']
 };
 
 export class GradeAnalysisService {
   static analyzeGrades(grades: Partial<GradeData>, section: BaccalaureateSection): MajorRecommendation[] {
-    // Return empty array if section is empty
-    if (section === '') {
-      return [];
-    }
-
     const recommendations: MajorRecommendation[] = [];
     
     // Get average of all entered grades
@@ -46,7 +41,7 @@ export class GradeAnalysisService {
       ? validGrades.reduce((sum, grade) => sum + grade, 0) / validGrades.length 
       : 0;
 
-    // Engineering recommendation - improved scoring for GS section
+    // Engineering recommendation - improved scoring for General Sciences section
     const engineeringScore = this.calculateEngineeringScore(grades, section);
     if (engineeringScore > 0) {
       recommendations.push({
@@ -145,7 +140,7 @@ export class GradeAnalysisService {
     return recommendations.sort((a, b) => b.matchPercentage - a.matchPercentage);
   }
 
-  private static calculateEngineeringScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
+  private static calculateEngineeringScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
     const mathGrade = grades.mathematics || 0;
     const physicsGrade = grades.physics || 0;
     const chemistryGrade = grades.chemistry || 0;
@@ -154,18 +149,18 @@ export class GradeAnalysisService {
     
     let baseScore = (mathGrade * 0.5 + physicsGrade * 0.4 + chemistryGrade * 0.1);
     
-    // Higher boost for GS section since it's most aligned with engineering
-    if (section === 'GS') {
-      baseScore *= 1.3; // Significant boost for GS
-    } else if (section === 'LS') {
-      baseScore *= 1.1; // Moderate boost for LS
+    // Higher boost for General Sciences section since it's most aligned with engineering
+    if (section === 'General Sciences') {
+      baseScore *= 1.3; // Significant boost for General Sciences
+    } else if (section === 'Life Sciences') {
+      baseScore *= 1.1; // Moderate boost for Life Sciences
     }
     
     // Improved scoring to make engineering more prominent for good science grades
     return Math.max(0, (baseScore - 8) * 6);
   }
 
-  private static calculateComputerScienceScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
+  private static calculateComputerScienceScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
     const mathGrade = grades.mathematics || 0;
     const physicsGrade = grades.physics || 0;
     const englishGrade = grades.english || 0;
@@ -175,30 +170,30 @@ export class GradeAnalysisService {
     let baseScore = (mathGrade * 0.5 + physicsGrade * 0.3 + englishGrade * 0.2);
     
     // Section-specific adjustments
-    if (section === 'GS') {
-      baseScore *= 1.15; // Higher boost for GS
-    } else if (section === 'LS') {
-      baseScore *= 1.05; // Slight boost for LS
+    if (section === 'General Sciences') {
+      baseScore *= 1.15; // Higher boost for General Sciences
+    } else if (section === 'Life Sciences') {
+      baseScore *= 1.05; // Slight boost for Life Sciences
     }
     
     return Math.max(0, (baseScore - 10) * 5);
   }
 
-  private static calculateMedicineScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
+  private static calculateMedicineScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
     const biologyGrade = grades.biology || 0;
     const chemistryGrade = grades.chemistry || 0;
     const physicsGrade = grades.physics || 0;
     const mathGrade = grades.mathematics || 0;
     
-    // Biology required for medicine (only available in LS section)
-    if (section !== 'LS' || biologyGrade === 0) return 0;
+    // Biology required for medicine (only available in Life Sciences section)
+    if (section !== 'Life Sciences' || biologyGrade === 0) return 0;
     
     let baseScore = (biologyGrade * 0.4 + chemistryGrade * 0.3 + physicsGrade * 0.2 + mathGrade * 0.1);
     
     return Math.max(0, (baseScore - 12) * 6);
   }
 
-  private static calculateBusinessScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
+  private static calculateBusinessScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
     const mathGrade = grades.mathematics || 0;
     const englishGrade = grades.english || 0;
     const economicsGrade = grades.economics || 0;
@@ -206,15 +201,15 @@ export class GradeAnalysisService {
     
     let baseScore = (mathGrade * 0.3 + englishGrade * 0.3);
     
-    // Add economics and sociology if available (SE section)
-    if (section === 'SE') {
+    // Add economics and sociology if available (Sociology and Economics section)
+    if (section === 'Sociology and Economics') {
       baseScore = (mathGrade * 0.25 + englishGrade * 0.25 + economicsGrade * 0.25 + sociologyGrade * 0.25);
     }
     
     return Math.max(0, (baseScore - 10) * 4);
   }
 
-  private static calculatePsychologyScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
+  private static calculatePsychologyScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
     const mathGrade = grades.mathematics || 0;
     const englishGrade = grades.english || 0;
     const sociologyGrade = grades.sociology || 0;
@@ -223,37 +218,36 @@ export class GradeAnalysisService {
     let baseScore = (mathGrade * 0.3 + englishGrade * 0.4);
     
     // Add sociology if available
-    if (section === 'SE' || section === 'LH') {
+    if (section === 'Sociology and Economics' || section === 'Literature and Humanities') {
       baseScore = (mathGrade * 0.25 + englishGrade * 0.35 + sociologyGrade * 0.4);
     }
     
-    // Add biology bonus if available (LS section)
-    if (section === 'LS' && biologyGrade > 0) {
+    // Add biology bonus if available (Life Sciences section)
+    if (section === 'Life Sciences' && biologyGrade > 0) {
       baseScore = (mathGrade * 0.2 + englishGrade * 0.3 + biologyGrade * 0.5);
     }
     
     return Math.max(0, (baseScore - 10) * 4);
   }
 
-  private static calculateLiteratureScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
+  private static calculateLiteratureScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
     const englishGrade = grades.english || 0;
     const arabicGrade = grades.arabic || 0;
-    const frenchGrade = grades.french || 0;
     const philosophyGrade = grades.philosophy || 0;
     
     if (englishGrade === 0 && arabicGrade === 0) return 0;
     
-    let baseScore = (englishGrade * 0.3 + arabicGrade * 0.3 + frenchGrade * 0.2 + philosophyGrade * 0.2);
+    let baseScore = (englishGrade * 0.4 + arabicGrade * 0.4 + philosophyGrade * 0.2);
     
-    // Boost for LH section
-    if (section === 'LH') {
+    // Boost for Literature and Humanities section
+    if (section === 'Literature and Humanities') {
       baseScore *= 1.2;
     }
     
     return Math.max(0, (baseScore - 10) * 4);
   }
 
-  private static calculateHistoryScore(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): number {
+  private static calculateHistoryScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
     const historyGrade = grades.history || 0;
     const geographyGrade = grades.geography || 0;
     const arabicGrade = grades.arabic || 0;
@@ -263,8 +257,8 @@ export class GradeAnalysisService {
     
     let baseScore = (historyGrade * 0.4 + geographyGrade * 0.2 + arabicGrade * 0.2 + englishGrade * 0.2);
     
-    // Boost for LH section
-    if (section === 'LH') {
+    // Boost for Literature and Humanities section
+    if (section === 'Literature and Humanities') {
       baseScore *= 1.15;
     }
     
