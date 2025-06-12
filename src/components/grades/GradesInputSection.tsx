@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import GradeInput from "./GradeInput";
+import { type BaccalaureateSection } from "@/services/gradeAnalysisService";
 
 interface Grades {
   arabic: number;
@@ -17,9 +18,8 @@ interface Grades {
   philosophy: number;
   economics: number;
   sociology: number;
+  french: number;
 }
-
-type BaccalaureateSection = 'GS' | 'LS' | 'SE' | 'LH' | '';
 
 interface GradesInputSectionProps {
   section: BaccalaureateSection;
@@ -44,6 +44,7 @@ const GradesInputSection = ({ section, grades, onGradeChange }: GradesInputSecti
       languages: [
         { key: 'arabic' as keyof Grades, label: 'Arabic' },
         { key: 'english' as keyof Grades, label: 'English' },
+        { key: 'french' as keyof Grades, label: 'French' },
       ],
       sciences: [
         { key: 'mathematics' as keyof Grades, label: 'Mathematics' },
