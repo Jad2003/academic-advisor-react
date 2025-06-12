@@ -51,13 +51,7 @@ const GradesAnalysis = () => {
   };
 
   const handleAnalyzeGrades = () => {
-    if (!section) {
-      toast.error("Please select your Baccalaureate section first");
-      return;
-    }
-
-    // Type guard to ensure section is not empty string
-    if (section === '') {
+    if (!section || section === '') {
       toast.error("Please select your Baccalaureate section first");
       return;
     }

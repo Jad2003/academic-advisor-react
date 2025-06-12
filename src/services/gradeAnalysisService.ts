@@ -31,7 +31,12 @@ export const subjectsBySection: Record<Exclude<BaccalaureateSection, ''>, (keyof
 };
 
 export class GradeAnalysisService {
-  static analyzeGrades(grades: Partial<GradeData>, section: Exclude<BaccalaureateSection, ''>): MajorRecommendation[] {
+  static analyzeGrades(grades: Partial<GradeData>, section: BaccalaureateSection): MajorRecommendation[] {
+    // Return empty array if section is empty
+    if (section === '') {
+      return [];
+    }
+
     const recommendations: MajorRecommendation[] = [];
     
     // Get average of all entered grades
