@@ -1,183 +1,324 @@
 
-interface Grades {
-  arabic: number;
-  english: number;
+export type BaccalaureateSection = 'GS' | 'LS' | 'SE' | 'LH';
+
+export interface GradeData {
   mathematics: number;
   physics: number;
   chemistry: number;
   biology: number;
+  arabic: number;
+  english: number;
+  french: number;
+  philosophy: number;
+  sociology: number;
+  economics: number;
   history: number;
   geography: number;
-  philosophy: number;
-  economics: number;
-  sociology: number;
 }
 
-interface MajorRecommendation {
+export interface MajorRecommendation {
   major: string;
-  match: number;
+  matchPercentage: number;
   description: string;
-  reasons: string[];
+  keyStrengths: string[];
+  suggestedPath: string;
 }
 
-type BaccalaureateSection = 'GS' | 'LS' | 'SE' | 'LH' | '';
+export const subjectsBySection: Record<BaccalaureateSection, (keyof GradeData)[]> = {
+  GS: ['mathematics', 'physics', 'chemistry', 'arabic', 'english', 'french', 'philosophy', 'history', 'geography'],
+  LS: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'french', 'philosophy', 'history', 'geography'],
+  SE: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'french', 'philosophy', 'sociology', 'economics', 'history', 'geography'],
+  LH: ['mathematics', 'physics', 'chemistry', 'biology', 'arabic', 'english', 'french', 'philosophy', 'sociology', 'economics', 'history', 'geography']
+};
 
-export const analyzeGrades = (grades: Grades, section: BaccalaureateSection): MajorRecommendation[] => {
-  console.log("Analyzing grades:", grades, "Section:", section);
-  
-  // Convert grades to percentage for easier calculation (Lebanese system is out of 20)
-  const gradePercentages = Object.fromEntries(
-    Object.entries(grades).map(([key, value]) => [key, (value / 20) * 100])
-  );
-  
-  // Enhanced rule-based AI logic with better subject correlation
-  const recommendations: MajorRecommendation[] = [];
-  
-  // Calculate subject group averages for better precision
-  const stemAvg = (gradePercentages.mathematics + gradePercentages.physics + gradePercentages.chemistry) / 3;
-  const bioMedAvg = (gradePercentages.biology + gradePercentages.chemistry + gradePercentages.physics) / 3;
-  const languagesAvg = (gradePercentages.arabic + gradePercentages.english) / 2;
-  const socialAvg = (gradePercentages.history + gradePercentages.geography + gradePercentages.sociology + gradePercentages.philosophy) / 4;
-  const businessAvg = (gradePercentages.economics + gradePercentages.mathematics + gradePercentages.english) / 3;
+export class GradeAnalysisService {
+  static analyzeGrades(grades: Partial<GradeData>, section: BaccalaureateSection): MajorRecommendation[] {
+    const recommendations: MajorRecommendation[] = [];
+    
+    // Get average of all entered grades
+    const validGrades = Object.values(grades).filter((grade): grade is number => 
+      typeof grade === 'number' && grade > 0
+    );
+    const overallAverage = validGrades.length > 0 
+      ? validGrades.reduce((sum, grade) => sum + grade, 0) / validGrades.length 
+      : 0;
 
-  // Set minimum threshold for recommendations
-  const MIN_THRESHOLD = 65;
+    // Engineering recommendation
+    const engineeringScore = this.calculateEngineeringScore(grades, section);
+    if (engineeringScore > 0) {
+      recommendations.push({
+        major: "Engineering",
+        matchPercentage: Math.min(engineeringScore, 95),
+        description: "Strong analytical and mathematical skills make you well-suited for engineering disciplines.",
+        keyStrengths: this.getEngineeringStrengths(grades),
+        suggestedPath: "Consider specializations in Mechanical, Electrical, Civil, or Computer Engineering based on your interests."
+      });
+    }
 
-  // Section-specific bonus multipliers
-  const getSectionBonus = (majorType: string): number => {
-    const bonuses: Record<string, Record<BaccalaureateSection, number>> = {
-      'stem': { 'GS': 1.15, 'LS': 1.05, 'SE': 0.95, 'LH': 0.9, '': 1 },
-      'medical': { 'GS': 1.1, 'LS': 1.2, 'SE': 0.9, 'LH': 0.85, '': 1 },
-      'business': { 'GS': 0.95, 'LS': 0.9, 'SE': 1.2, 'LH': 1.0, '': 1 },
-      'humanities': { 'GS': 0.9, 'LS': 0.85, 'SE': 1.1, 'LH': 1.25, '': 1 },
-      'social': { 'GS': 0.9, 'LS': 0.9, 'SE': 1.15, 'LH': 1.1, '': 1 }
-    };
-    return bonuses[majorType]?.[section] || 1;
-  };
-
-  // Engineering - Requires strong Math + Physics combination
-  if (gradePercentages.mathematics >= 75 && gradePercentages.physics >= 70 && stemAvg >= 72) {
-    const engineeringScore = (stemAvg + (gradePercentages.mathematics - 70) * 0.3) * getSectionBonus('stem');
-    recommendations.push({
-      major: "Engineering",
-      match: Math.min(95, engineeringScore),
-      description: "Design and build solutions to technical problems using mathematics and science.",
-      reasons: [
-        `Strong mathematics foundation (${grades.mathematics}/20)`,
-        `Excellent physics understanding (${grades.physics}/20)`,
-        `STEM subjects average: ${Math.round(stemAvg)}%`,
-        section === 'GS' ? 'Perfect match with General Sciences background' : `Good fit despite ${section} background`
-      ]
-    });
-  }
-
-  // Computer Science - Math + Logic focus
-  if (gradePercentages.mathematics >= 70 && (gradePercentages.physics >= 65 || gradePercentages.economics >= 65)) {
-    const csScore = (gradePercentages.mathematics * 0.6 + gradePercentages.physics * 0.25 + gradePercentages.english * 0.15) * getSectionBonus('stem');
-    if (csScore >= MIN_THRESHOLD) {
+    // Computer Science recommendation
+    const csScore = this.calculateComputerScienceScore(grades, section);
+    if (csScore > 0) {
       recommendations.push({
         major: "Computer Science",
-        match: Math.min(92, csScore),
-        description: "Develop software, algorithms, and computing systems.",
-        reasons: [
-          `Strong mathematical reasoning (${grades.mathematics}/20)`,
-          `Logical problem-solving abilities`,
-          gradePercentages.physics >= 65 ? `Physics foundation supports computational thinking` : `Economics background aids algorithmic thinking`,
-          section === 'GS' ? 'Excellent alignment with General Sciences' : 'Strong potential despite different background'
-        ]
+        matchPercentage: Math.min(csScore, 95),
+        description: "Your logical thinking and mathematical abilities align well with computer science.",
+        keyStrengths: this.getComputerScienceStrengths(grades),
+        suggestedPath: "Focus on programming, algorithms, and consider specializations in AI, cybersecurity, or software development."
       });
     }
-  }
 
-  // Medicine - Bio + Chem + Physics trinity (only for sections that have biology)
-  if (section !== 'GS' && gradePercentages.biology >= 75 && gradePercentages.chemistry >= 70 && bioMedAvg >= 72) {
-    const medScore = (bioMedAvg + (gradePercentages.biology - 70) * 0.4) * getSectionBonus('medical');
-    recommendations.push({
-      major: "Medicine",
-      match: Math.min(97, medScore),
-      description: "Study human health, disease prevention, and medical treatment.",
-      reasons: [
-        `Outstanding biology performance (${grades.biology}/20)`,
-        `Strong chemistry foundation (${grades.chemistry}/20)`,
-        `Medical sciences average: ${Math.round(bioMedAvg)}%`,
-        section === 'LS' ? 'Perfect match with Life Sciences background' : 'Strong potential for medical studies'
-      ]
-    });
-  }
-
-  // Business Administration - Economics + Math + Languages (only for sections that have economics)
-  if ((section === 'SE' || section === 'LH') && gradePercentages.economics >= 70 && businessAvg >= 68) {
-    const businessScore = (businessAvg + (gradePercentages.economics - 65) * 0.3) * getSectionBonus('business');
-    recommendations.push({
-      major: "Business Administration",
-      match: Math.min(88, businessScore),
-      description: "Learn management, finance, and organizational leadership.",
-      reasons: [
-        `Strong economics understanding (${grades.economics}/20)`,
-        `Good mathematical skills for financial analysis`,
-        `Language skills for business communication`,
-        section === 'SE' ? 'Perfect alignment with Sociology and Economics' : 'Good potential for business studies'
-      ]
-    });
-  }
-
-  // Law
-  if (gradePercentages.arabic >= 70 && gradePercentages.history >= 68 && gradePercentages.philosophy >= 65) {
-    const lawScore = (gradePercentages.arabic * 0.4 + gradePercentages.history * 0.3 + gradePercentages.philosophy * 0.3) * getSectionBonus('humanities');
-    if (lawScore >= MIN_THRESHOLD) {
+    // Medicine recommendation
+    const medicineScore = this.calculateMedicineScore(grades, section);
+    if (medicineScore > 0) {
       recommendations.push({
-        major: "Law",
-        match: Math.min(85, lawScore),
-        description: "Study legal systems and advocate for justice.",
-        reasons: [
-          `Strong Arabic language skills for legal documents`,
-          `Historical knowledge for legal precedents`,
-          `Philosophical thinking for legal analysis`,
-          section === 'LH' ? 'Excellent match with Literature and Humanities' : section === 'SE' ? 'Good fit with social sciences background' : 'Strong potential for legal studies'
-        ]
+        major: "Medicine/Pre-Med",
+        matchPercentage: Math.min(medicineScore, 95),
+        description: "Strong performance in sciences indicates potential for medical studies.",
+        keyStrengths: this.getMedicineStrengths(grades),
+        suggestedPath: "Maintain high grades and gain healthcare experience through volunteering or internships."
       });
     }
-  }
 
-  // Psychology - Social sciences with specific focus (only for sections that have sociology)
-  if ((section === 'SE' || section === 'LH') && gradePercentages.sociology >= 70 && gradePercentages.philosophy >= 65 && socialAvg >= 68) {
-    const psychScore = (gradePercentages.sociology * 0.4 + gradePercentages.philosophy * 0.3 + (section !== 'GS' ? gradePercentages.biology * 0.2 : 0) + gradePercentages.english * 0.1) * getSectionBonus('social');
-    if (psychScore >= MIN_THRESHOLD) {
+    // Business recommendation
+    const businessScore = this.calculateBusinessScore(grades, section);
+    if (businessScore > 0) {
+      recommendations.push({
+        major: "Business Administration",
+        matchPercentage: Math.min(businessScore, 95),
+        description: "Balanced academic performance with strong communication skills suit business studies.",
+        keyStrengths: this.getBusinessStrengths(grades),
+        suggestedPath: "Consider specializations in Management, Marketing, Finance, or Entrepreneurship."
+      });
+    }
+
+    // Psychology recommendation
+    const psychologyScore = this.calculatePsychologyScore(grades, section);
+    if (psychologyScore > 0) {
       recommendations.push({
         major: "Psychology",
-        match: Math.min(83, psychScore),
-        description: "Study human behavior, mental processes, and therapeutic techniques.",
-        reasons: [
-          `Strong understanding of human behavior (Sociology: ${grades.sociology}/20)`,
-          `Philosophical thinking for psychological analysis`,
-          section !== 'GS' && gradePercentages.biology >= 60 ? `Biology background supports neuropsychology` : `Strong social science foundation`,
-          section === 'SE' || section === 'LH' ? 'Great alignment with your academic background' : 'Strong potential for psychology'
-        ]
+        matchPercentage: Math.min(psychologyScore, 95),
+        description: "Strong analytical and communication skills are valuable for psychology.",
+        keyStrengths: this.getPsychologyStrengths(grades),
+        suggestedPath: "Explore areas like clinical, cognitive, or social psychology based on your interests."
       });
     }
+
+    // Literature recommendation
+    const literatureScore = this.calculateLiteratureScore(grades, section);
+    if (literatureScore > 0) {
+      recommendations.push({
+        major: "English Literature",
+        matchPercentage: Math.min(literatureScore, 95),
+        description: "Strong language and analytical skills make you well-suited for literary studies.",
+        keyStrengths: this.getLiteratureStrengths(grades),
+        suggestedPath: "Consider combining with creative writing, journalism, or education for career flexibility."
+      });
+    }
+
+    // Fine Arts recommendation
+    if (overallAverage >= 12) {
+      recommendations.push({
+        major: "Fine Arts",
+        matchPercentage: Math.min(60 + (overallAverage - 12) * 3, 85),
+        description: "Creative expression combined with academic foundation opens artistic opportunities.",
+        keyStrengths: ["Creative thinking", "Cultural awareness", "Visual communication"],
+        suggestedPath: "Explore various mediums and consider combining art with technology or business."
+      });
+    }
+
+    // History recommendation
+    const historyScore = this.calculateHistoryScore(grades, section);
+    if (historyScore > 0) {
+      recommendations.push({
+        major: "History",
+        matchPercentage: Math.min(historyScore, 90),
+        description: "Strong analytical and research skills are valuable for historical studies.",
+        keyStrengths: this.getHistoryStrengths(grades),
+        suggestedPath: "Consider specializations in specific periods or regions, and explore careers in education, research, or public history."
+      });
+    }
+
+    // Sort by match percentage
+    return recommendations.sort((a, b) => b.matchPercentage - a.matchPercentage);
   }
 
-  // Sort by match score and limit to meaningful recommendations
-  const sortedRecommendations = recommendations
-    .filter(rec => rec.match >= 60) // Only show strong matches
-    .sort((a, b) => b.match - a.match)
-    .slice(0, 4); // Limit to top 4 recommendations
-
-  // Ensure we have at least one recommendation
-  if (sortedRecommendations.length === 0) {
-    const avgGrade = Object.values(gradePercentages).reduce((a, b) => a + b, 0) / Object.values(gradePercentages).length;
-    sortedRecommendations.push({
-      major: "Liberal Arts",
-      match: Math.max(60, avgGrade),
-      description: "A broad field that allows you to explore various interests while developing critical thinking skills.",
-      reasons: [
-        "Well-rounded academic performance",
-        "Opportunity to explore multiple disciplines",
-        "Foundation for various career paths",
-        `Your ${section} background provides a good foundation for interdisciplinary studies`
-      ]
-    });
+  private static calculateEngineeringScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+    const mathGrade = grades.mathematics || 0;
+    const physicsGrade = grades.physics || 0;
+    const chemistryGrade = grades.chemistry || 0;
+    
+    if (mathGrade === 0 && physicsGrade === 0) return 0;
+    
+    let baseScore = (mathGrade * 0.4 + physicsGrade * 0.4 + chemistryGrade * 0.2);
+    
+    // Section-specific adjustments
+    if (section === 'GS' || section === 'LS') {
+      baseScore *= 1.1; // Boost for science sections
+    }
+    
+    return Math.max(0, (baseScore - 10) * 5);
   }
 
-  return sortedRecommendations;
-};
+  private static calculateComputerScienceScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+    const mathGrade = grades.mathematics || 0;
+    const physicsGrade = grades.physics || 0;
+    const englishGrade = grades.english || 0;
+    
+    if (mathGrade === 0) return 0;
+    
+    let baseScore = (mathGrade * 0.5 + physicsGrade * 0.3 + englishGrade * 0.2);
+    
+    // Section-specific adjustments
+    if (section === 'GS') {
+      baseScore *= 1.15; // Higher boost for GS
+    } else if (section === 'LS') {
+      baseScore *= 1.05; // Slight boost for LS
+    }
+    
+    return Math.max(0, (baseScore - 10) * 5);
+  }
+
+  private static calculateMedicineScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+    const biologyGrade = grades.biology || 0;
+    const chemistryGrade = grades.chemistry || 0;
+    const physicsGrade = grades.physics || 0;
+    const mathGrade = grades.mathematics || 0;
+    
+    // Biology required for medicine (only available in LS section)
+    if (section !== 'LS' || biologyGrade === 0) return 0;
+    
+    let baseScore = (biologyGrade * 0.4 + chemistryGrade * 0.3 + physicsGrade * 0.2 + mathGrade * 0.1);
+    
+    return Math.max(0, (baseScore - 12) * 6);
+  }
+
+  private static calculateBusinessScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+    const mathGrade = grades.mathematics || 0;
+    const englishGrade = grades.english || 0;
+    const economicsGrade = grades.economics || 0;
+    const sociologyGrade = grades.sociology || 0;
+    
+    let baseScore = (mathGrade * 0.3 + englishGrade * 0.3);
+    
+    // Add economics and sociology if available (SE section)
+    if (section === 'SE') {
+      baseScore = (mathGrade * 0.25 + englishGrade * 0.25 + economicsGrade * 0.25 + sociologyGrade * 0.25);
+    }
+    
+    return Math.max(0, (baseScore - 10) * 4);
+  }
+
+  private static calculatePsychologyScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+    const mathGrade = grades.mathematics || 0;
+    const englishGrade = grades.english || 0;
+    const sociologyGrade = grades.sociology || 0;
+    const biologyGrade = grades.biology || 0;
+    
+    let baseScore = (mathGrade * 0.3 + englishGrade * 0.4);
+    
+    // Add sociology if available
+    if (section === 'SE' || section === 'LH') {
+      baseScore = (mathGrade * 0.25 + englishGrade * 0.35 + sociologyGrade * 0.4);
+    }
+    
+    // Add biology bonus if available (LS section)
+    if (section === 'LS' && biologyGrade > 0) {
+      baseScore = (mathGrade * 0.2 + englishGrade * 0.3 + biologyGrade * 0.5);
+    }
+    
+    return Math.max(0, (baseScore - 10) * 4);
+  }
+
+  private static calculateLiteratureScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+    const englishGrade = grades.english || 0;
+    const arabicGrade = grades.arabic || 0;
+    const frenchGrade = grades.french || 0;
+    const philosophyGrade = grades.philosophy || 0;
+    
+    if (englishGrade === 0 && arabicGrade === 0) return 0;
+    
+    let baseScore = (englishGrade * 0.3 + arabicGrade * 0.3 + frenchGrade * 0.2 + philosophyGrade * 0.2);
+    
+    // Boost for LH section
+    if (section === 'LH') {
+      baseScore *= 1.2;
+    }
+    
+    return Math.max(0, (baseScore - 10) * 4);
+  }
+
+  private static calculateHistoryScore(grades: Partial<GradeData>, section: BaccalaureateSection): number {
+    const historyGrade = grades.history || 0;
+    const geographyGrade = grades.geography || 0;
+    const arabicGrade = grades.arabic || 0;
+    const englishGrade = grades.english || 0;
+    
+    if (historyGrade === 0) return 0;
+    
+    let baseScore = (historyGrade * 0.4 + geographyGrade * 0.2 + arabicGrade * 0.2 + englishGrade * 0.2);
+    
+    // Boost for LH section
+    if (section === 'LH') {
+      baseScore *= 1.15;
+    }
+    
+    return Math.max(0, (baseScore - 10) * 4);
+  }
+
+  // Helper methods for strengths
+  private static getEngineeringStrengths(grades: Partial<GradeData>): string[] {
+    const strengths = [];
+    if ((grades.mathematics || 0) >= 15) strengths.push("Strong mathematical foundation");
+    if ((grades.physics || 0) >= 15) strengths.push("Excellent physics understanding");
+    if ((grades.chemistry || 0) >= 15) strengths.push("Solid chemistry knowledge");
+    return strengths.length > 0 ? strengths : ["Analytical thinking", "Problem-solving skills"];
+  }
+
+  private static getComputerScienceStrengths(grades: Partial<GradeData>): string[] {
+    const strengths = [];
+    if ((grades.mathematics || 0) >= 15) strengths.push("Strong logical reasoning");
+    if ((grades.physics || 0) >= 15) strengths.push("Good understanding of systems");
+    if ((grades.english || 0) >= 15) strengths.push("Strong communication skills");
+    return strengths.length > 0 ? strengths : ["Problem-solving", "Analytical thinking"];
+  }
+
+  private static getMedicineStrengths(grades: Partial<GradeData>): string[] {
+    const strengths = [];
+    if ((grades.biology || 0) >= 15) strengths.push("Excellent biological sciences");
+    if ((grades.chemistry || 0) >= 15) strengths.push("Strong chemistry foundation");
+    if ((grades.physics || 0) >= 15) strengths.push("Good scientific reasoning");
+    return strengths.length > 0 ? strengths : ["Scientific aptitude", "Detail-oriented"];
+  }
+
+  private static getBusinessStrengths(grades: Partial<GradeData>): string[] {
+    const strengths = [];
+    if ((grades.mathematics || 0) >= 15) strengths.push("Strong analytical skills");
+    if ((grades.english || 0) >= 15) strengths.push("Excellent communication");
+    if ((grades.economics || 0) >= 15) strengths.push("Economic understanding");
+    return strengths.length > 0 ? strengths : ["Leadership potential", "Strategic thinking"];
+  }
+
+  private static getPsychologyStrengths(grades: Partial<GradeData>): string[] {
+    const strengths = [];
+    if ((grades.english || 0) >= 15) strengths.push("Strong communication skills");
+    if ((grades.sociology || 0) >= 15) strengths.push("Understanding of human behavior");
+    if ((grades.biology || 0) >= 15) strengths.push("Scientific approach to behavior");
+    return strengths.length > 0 ? strengths : ["Empathy", "Analytical thinking"];
+  }
+
+  private static getLiteratureStrengths(grades: Partial<GradeData>): string[] {
+    const strengths = [];
+    if ((grades.english || 0) >= 15) strengths.push("Excellent language skills");
+    if ((grades.arabic || 0) >= 15) strengths.push("Strong linguistic foundation");
+    if ((grades.philosophy || 0) >= 15) strengths.push("Critical thinking abilities");
+    return strengths.length > 0 ? strengths : ["Creative writing", "Literary analysis"];
+  }
+
+  private static getHistoryStrengths(grades: Partial<GradeData>): string[] {
+    const strengths = [];
+    if ((grades.history || 0) >= 15) strengths.push("Strong historical knowledge");
+    if ((grades.geography || 0) >= 15) strengths.push("Geographic understanding");
+    if ((grades.arabic || 0) >= 15) strengths.push("Cultural awareness");
+    return strengths.length > 0 ? strengths : ["Research skills", "Critical analysis"];
+  }
+}
