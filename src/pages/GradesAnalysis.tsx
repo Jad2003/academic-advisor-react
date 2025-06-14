@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,6 @@ import { ArrowLeft, Calculator, BookOpen, ChevronDown, ChevronUp } from "lucide-
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import JobOpportunities from "@/components/JobOpportunities";
-import EnhancedRecommendations from "@/components/EnhancedRecommendations";
 
 interface Grades {
   arabic: number;
@@ -354,7 +354,6 @@ const GradesAnalysis = () => {
           <div className="space-y-6 max-w-4xl mx-auto">
             {displayedRecommendations.map((rec, index) => (
               <Card key={index} className="border-0 shadow-lg bg-white/80 backdrop-blur">
-                {/* ... keep existing code (recommendation cards) the same */}
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
@@ -394,7 +393,7 @@ const GradesAnalysis = () => {
               </Card>
             ))}
 
-            {/* Show More/Less Button */}
+            {/* Show More/Less Button - Only show if there are more than 3 recommendations */}
             {recommendations.length > 3 && (
               <div className="flex justify-center">
                 <Button
@@ -416,12 +415,6 @@ const GradesAnalysis = () => {
                 </Button>
               </div>
             )}
-
-            {/* Enhanced AI Recommendations */}
-            <EnhancedRecommendations 
-              grades={grades} 
-              ruleBasedRecommendations={recommendations}
-            />
 
             {/* Job Opportunities for Top Recommendation */}
             {recommendations.length > 0 && (
