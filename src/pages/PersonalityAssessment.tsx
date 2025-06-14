@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, ChevronDown, ChevronUp, Cpu } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import JobOpportunities from "@/components/JobOpportunities";
@@ -24,7 +24,7 @@ const PersonalityAssessment = () => {
     setResults(assessmentResults);
     setShowResults(true);
     setShowAllResults(false);
-    toast.success("ML analysis complete! Your personality-based recommendations are ready.");
+    toast.success("Assessment complete! Your personality-based recommendations are ready.");
   };
 
   const resetAssessment = () => {
@@ -34,6 +34,8 @@ const PersonalityAssessment = () => {
   };
 
   const handlePrevious = () => {
+    // This could be expanded to allow going back through questions
+    // For now, it just goes back to home
     window.history.back();
   };
 
@@ -51,7 +53,7 @@ const PersonalityAssessment = () => {
                 Back Home
               </Button>
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">ML-Based Personality Analysis Results</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Your Personality-Based Recommendations</h1>
           </div>
 
           {/* Results */}
@@ -68,7 +70,7 @@ const PersonalityAssessment = () => {
                     </div>
                     <div className="flex items-center">
                       <div className="text-2xl font-bold text-purple-600 mr-2">{Math.round(result.match)}%</div>
-                      <div className="text-sm text-gray-500">ML Confidence</div>
+                      <div className="text-sm text-gray-500">Match</div>
                     </div>
                   </div>
                   <p className="text-gray-600">{result.description}</p>
@@ -76,7 +78,7 @@ const PersonalityAssessment = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Personality traits identified by ML:</h4>
+                      <h4 className="font-semibold text-gray-900 mb-2">Your personality traits that align:</h4>
                       <div className="flex flex-wrap gap-2">
                         {result.traits.map((trait, idx) => (
                           <span 
@@ -101,7 +103,7 @@ const PersonalityAssessment = () => {
               </Card>
             ))}
 
-            {/* Show More/Less Button */}
+            {/* Show More/Less Button - Only show if there are more than 3 recommendations */}
             {results.length > 3 && (
               <div className="flex justify-center">
                 <Button
@@ -133,11 +135,11 @@ const PersonalityAssessment = () => {
           {/* Action Buttons */}
           <div className="flex justify-center mt-8 space-x-4">
             <Button onClick={resetAssessment} variant="outline">
-              Retrain ML Model
+              Retake Assessment
             </Button>
             <Link to="/grades-analysis">
               <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
-                Try Rule-Based Analysis
+                Try Grade Analysis
               </Button>
             </Link>
           </div>
@@ -158,23 +160,10 @@ const PersonalityAssessment = () => {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">ML-Based Personality Assessment Agent</h1>
-            <p className="text-gray-600 mt-2">Advanced machine learning engine with classification and prediction capabilities</p>
+            <h1 className="text-3xl font-bold text-gray-900">Personality Assessment</h1>
+            <p className="text-gray-600 mt-2">Answer adaptive questions to discover your ideal major</p>
           </div>
         </div>
-
-        <Card className="max-w-4xl mx-auto border-0 shadow-lg bg-white/80 backdrop-blur mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center text-gray-900">
-              <Cpu className="h-6 w-6 mr-2 text-purple-600" />
-              Machine Learning Analysis System
-            </CardTitle>
-            <p className="text-sm text-gray-600 mt-2">
-              This AI agent uses advanced ML algorithms including classification, clustering, and prediction 
-              models trained on relevant datasets for personality-based major recommendations.
-            </p>
-          </CardHeader>
-        </Card>
 
         <AdaptivePersonalityAssessment 
           onComplete={handleAssessmentComplete}
