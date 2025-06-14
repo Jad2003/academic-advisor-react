@@ -26,7 +26,7 @@ interface Grades {
 }
 
 const GradesAnalysis = () => {
-  const [section, setSection] = useState<BaccalaureateSection | ''>('');
+  const [section, setSection] = useState<BaccalaureateSection | null>(null);
   const [grades, setGrades] = useState<Grades>({
     arabic: 0,
     english: 0,
@@ -50,7 +50,7 @@ const GradesAnalysis = () => {
   };
 
   const handleAnalyzeGrades = () => {
-    if (!section || section === '') {
+    if (!section) {
       toast.error("Please select your Baccalaureate section first");
       return;
     }
@@ -66,7 +66,7 @@ const GradesAnalysis = () => {
     setShowResults(false);
     setRecommendations([]);
     setShowAllRecommendations(false);
-    setSection('');
+    setSection(null);
     setGrades({
       arabic: 0,
       english: 0,
@@ -162,8 +162,8 @@ const GradesAnalysis = () => {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Grade-Based Analysis</h1>
-            <p className="text-gray-600 mt-2">Enter your Lebanese Baccalaureate grades to get personalized major recommendations</p>
+            <h1 className="text-3xl font-bold text-gray-900">AI Educational Enhancement Agent</h1>
+            <p className="text-gray-600 mt-2">Rule-based AI system for personalized academic guidance and career recommendations</p>
           </div>
         </div>
 
@@ -172,15 +172,18 @@ const GradesAnalysis = () => {
           <CardHeader>
             <CardTitle className="flex items-center text-gray-900">
               <Calculator className="h-6 w-6 mr-2 text-blue-600" />
-              Enter Your Lebanese Baccalaureate Information
+              Lebanese Baccalaureate Analysis System
             </CardTitle>
+            <p className="text-sm text-gray-600 mt-2">
+              This AI agent analyzes your academic performance using rule-based algorithms to provide intelligent major recommendations
+            </p>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Baccalaureate Section Selection */}
             <SectionSelector section={section} onSectionChange={setSection} />
 
             {/* Grades Input */}
-            {section && section !== '' && (
+            {section && (
               <div className="space-y-4">
                 <h3 className="text-base font-semibold text-gray-900">Enter Your Grades (0-20)</h3>
                 <GradesInputSection 
@@ -194,10 +197,10 @@ const GradesAnalysis = () => {
             <Button 
               onClick={handleAnalyzeGrades} 
               className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3"
-              disabled={!section || section === ''}
+              disabled={!section}
             >
               <BookOpen className="h-5 w-5 mr-2" />
-              Analyze My Grades
+              Run AI Analysis
             </Button>
           </CardContent>
         </Card>

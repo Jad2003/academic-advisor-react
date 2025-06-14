@@ -4,15 +4,18 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { type BaccalaureateSection } from "@/services/gradeAnalysisService";
 
 interface SectionSelectorProps {
-  section: BaccalaureateSection | '';
-  onSectionChange: (section: BaccalaureateSection | '') => void;
+  section: BaccalaureateSection | null;
+  onSectionChange: (section: BaccalaureateSection | null) => void;
 }
 
 const SectionSelector = ({ section, onSectionChange }: SectionSelectorProps) => {
   return (
     <div className="space-y-4">
       <Label className="text-base font-semibold text-gray-900">Select your Baccalaureate Section</Label>
-      <RadioGroup value={section} onValueChange={(value) => onSectionChange(value as BaccalaureateSection | '')}>
+      <RadioGroup 
+        value={section || ''} 
+        onValueChange={(value) => onSectionChange(value as BaccalaureateSection || null)}
+      >
         <div className="grid md:grid-cols-2 gap-4">
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="General Sciences" id="General Sciences" />
