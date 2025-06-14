@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, Calculator, BookOpen, ChevronDown, ChevronUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -30,7 +30,10 @@ interface MajorRecommendation {
   reasons: string[];
 }
 
+type BaccalaureateClass = "general-sciences" | "life-sciences" | "sociology-economics" | "literature-humanities";
+
 const GradesAnalysis = () => {
+  const [baccalaureateClass, setBaccalaureateClass] = useState<BaccalaureateClass>("general-sciences");
   const [grades, setGrades] = useState<Grades>({
     arabic: 0,
     english: 0,
@@ -55,13 +58,14 @@ const GradesAnalysis = () => {
 
   const analyzeGrades = () => {
     console.log("Analyzing grades:", grades);
+    console.log("Baccalaureate class:", baccalaureateClass);
     
     // Convert grades to percentage for easier calculation (Lebanese system is out of 20)
     const gradePercentages = Object.fromEntries(
       Object.entries(grades).map(([key, value]) => [key, (value / 20) * 100])
     );
     
-    // Enhanced rule-based AI logic with better subject correlation
+    // Enhanced rule-based AI logic with better subject correlation and class-specific weighting
     const recommendations: MajorRecommendation[] = [];
     
     // Calculate subject group averages for better precision
@@ -74,9 +78,28 @@ const GradesAnalysis = () => {
     // Set minimum threshold for recommendations
     const MIN_THRESHOLD = 65;
 
+    // Class-specific bonus multiplier
+    const getClassBonus = (major: string) => {
+      switch (baccalaureateClass) {
+        case "general-sciences":
+          if (["Engineering", "Computer Science", "Mathematics", "Physics", "Architecture"].includes(major)) return 1.1;
+          break;
+        case "life-sciences":
+          if (["Medicine", "Pharmacy", "Dentistry", "Nursing", "Biology", "Biotechnology"].includes(major)) return 1.1;
+          break;
+        case "sociology-economics":
+          if (["Business Administration", "Economics", "Psychology", "International Relations", "Sociology"].includes(major)) return 1.1;
+          break;
+        case "literature-humanities":
+          if (["Literature & Languages", "Law", "Philosophy", "History", "Journalism"].includes(major)) return 1.1;
+          break;
+      }
+      return 1.0;
+    };
+
     // Engineering - Requires strong Math + Physics combination
     if (gradePercentages.mathematics >= 75 && gradePercentages.physics >= 70 && stemAvg >= 72) {
-      const engineeringScore = stemAvg + (gradePercentages.mathematics - 70) * 0.3;
+      const engineeringScore = (stemAvg + (gradePercentages.mathematics - 70) * 0.3) * getClassBonus("Engineering");
       recommendations.push({
         major: "Engineering",
         match: Math.min(95, engineeringScore),
@@ -84,14 +107,15 @@ const GradesAnalysis = () => {
         reasons: [
           `Strong mathematics foundation (${grades.mathematics}/20)`,
           `Excellent physics understanding (${grades.physics}/20)`,
-          `STEM subjects average: ${Math.round(stemAvg)}%`
-        ]
+          `STEM subjects average: ${Math.round(stemAvg)}%`,
+          baccalaureateClass === "general-sciences" ? "Perfect match for your General Sciences background" : ""
+        ].filter(Boolean)
       });
     }
 
     // Computer Science - Math + Logic focus
     if (gradePercentages.mathematics >= 70 && (gradePercentages.physics >= 65 || gradePercentages.economics >= 65)) {
-      const csScore = gradePercentages.mathematics * 0.6 + gradePercentages.physics * 0.25 + gradePercentages.english * 0.15;
+      const csScore = (gradePercentages.mathematics * 0.6 + gradePercentages.physics * 0.25 + gradePercentages.english * 0.15) * getClassBonus("Computer Science");
       if (csScore >= MIN_THRESHOLD) {
         recommendations.push({
           major: "Computer Science",
@@ -100,15 +124,16 @@ const GradesAnalysis = () => {
           reasons: [
             `Strong mathematical reasoning (${grades.mathematics}/20)`,
             `Logical problem-solving abilities`,
-            gradePercentages.physics >= 65 ? `Physics foundation supports computational thinking` : `Economics background aids algorithmic thinking`
-          ]
+            gradePercentages.physics >= 65 ? `Physics foundation supports computational thinking` : `Economics background aids algorithmic thinking`,
+            baccalaureateClass === "general-sciences" ? "Ideal for your technical background" : ""
+          ].filter(Boolean)
         });
       }
     }
 
     // Medicine - Bio + Chem + Physics trinity
     if (gradePercentages.biology >= 75 && gradePercentages.chemistry >= 70 && bioMedAvg >= 72) {
-      const medScore = bioMedAvg + (gradePercentages.biology - 70) * 0.4;
+      const medScore = (bioMedAvg + (gradePercentages.biology - 70) * 0.4) * getClassBonus("Medicine");
       recommendations.push({
         major: "Medicine",
         match: Math.min(97, medScore),
@@ -116,14 +141,15 @@ const GradesAnalysis = () => {
         reasons: [
           `Outstanding biology performance (${grades.biology}/20)`,
           `Strong chemistry foundation (${grades.chemistry}/20)`,
-          `Medical sciences average: ${Math.round(bioMedAvg)}%`
-        ]
+          `Medical sciences average: ${Math.round(bioMedAvg)}%`,
+          baccalaureateClass === "life-sciences" ? "Perfect alignment with your Life Sciences track" : ""
+        ].filter(Boolean)
       });
     }
 
     // Pharmacy - Chemistry focused with Biology
     if (gradePercentages.chemistry >= 75 && gradePercentages.biology >= 65 && gradePercentages.mathematics >= 60) {
-      const pharmScore = gradePercentages.chemistry * 0.5 + gradePercentages.biology * 0.3 + gradePercentages.mathematics * 0.2;
+      const pharmScore = (gradePercentages.chemistry * 0.5 + gradePercentages.biology * 0.3 + gradePercentages.mathematics * 0.2) * getClassBonus("Pharmacy");
       if (pharmScore >= MIN_THRESHOLD) {
         recommendations.push({
           major: "Pharmacy",
@@ -132,66 +158,16 @@ const GradesAnalysis = () => {
           reasons: [
             `Excellent chemistry mastery (${grades.chemistry}/20)`,
             `Strong biological sciences foundation`,
-            `Mathematical skills for pharmaceutical calculations`
-          ]
-        });
-      }
-    }
-
-    // Architecture
-    if (gradePercentages.mathematics >= 65 && gradePercentages.physics >= 60 && gradePercentages.geography >= 65) {
-      const archScore = (gradePercentages.mathematics * 0.3 + gradePercentages.physics * 0.3 + gradePercentages.geography * 0.4);
-      if (archScore >= MIN_THRESHOLD) {
-        recommendations.push({
-          major: "Architecture",
-          match: Math.min(85, archScore),
-          description: "Design buildings and spaces that combine functionality with aesthetic appeal.",
-          reasons: [
-            `Mathematical skills for structural calculations`,
-            `Physics understanding for building mechanics`,
-            `Geographic awareness for environmental design`
-          ]
-        });
-      }
-    }
-
-    // Dentistry
-    if (gradePercentages.biology >= 70 && gradePercentages.chemistry >= 68 && gradePercentages.physics >= 60) {
-      const dentScore = gradePercentages.biology * 0.4 + gradePercentages.chemistry * 0.35 + gradePercentages.physics * 0.25;
-      if (dentScore >= MIN_THRESHOLD) {
-        recommendations.push({
-          major: "Dentistry",
-          match: Math.min(88, dentScore),
-          description: "Provide oral healthcare and dental treatment to patients.",
-          reasons: [
-            `Strong biological sciences foundation`,
-            `Chemistry knowledge for dental materials`,
-            `Physics understanding for dental procedures`
-          ]
-        });
-      }
-    }
-
-    // Nursing
-    if (gradePercentages.biology >= 65 && gradePercentages.chemistry >= 60 && gradePercentages.english >= 65) {
-      const nursingScore = gradePercentages.biology * 0.4 + gradePercentages.chemistry * 0.3 + gradePercentages.english * 0.3;
-      if (nursingScore >= MIN_THRESHOLD) {
-        recommendations.push({
-          major: "Nursing",
-          match: Math.min(82, nursingScore),
-          description: "Provide direct patient care and health education.",
-          reasons: [
-            `Biological sciences knowledge for patient care`,
-            `Chemistry background for medication understanding`,
-            `Communication skills for patient interaction`
-          ]
+            `Mathematical skills for pharmaceutical calculations`,
+            baccalaureateClass === "life-sciences" ? "Great fit for your scientific background" : ""
+          ].filter(Boolean)
         });
       }
     }
 
     // Business Administration - Economics + Math + Languages
     if (gradePercentages.economics >= 70 && businessAvg >= 68) {
-      const businessScore = businessAvg + (gradePercentages.economics - 65) * 0.3;
+      const businessScore = (businessAvg + (gradePercentages.economics - 65) * 0.3) * getClassBonus("Business Administration");
       recommendations.push({
         major: "Business Administration",
         match: Math.min(88, businessScore),
@@ -199,14 +175,15 @@ const GradesAnalysis = () => {
         reasons: [
           `Strong economics understanding (${grades.economics}/20)`,
           `Good mathematical skills for financial analysis`,
-          `Language skills for business communication`
-        ]
+          `Language skills for business communication`,
+          baccalaureateClass === "sociology-economics" ? "Excellent match for your academic background" : ""
+        ].filter(Boolean)
       });
     }
 
     // Law
     if (gradePercentages.arabic >= 70 && gradePercentages.history >= 68 && gradePercentages.philosophy >= 65) {
-      const lawScore = (gradePercentages.arabic * 0.4 + gradePercentages.history * 0.3 + gradePercentages.philosophy * 0.3);
+      const lawScore = (gradePercentages.arabic * 0.4 + gradePercentages.history * 0.3 + gradePercentages.philosophy * 0.3) * getClassBonus("Law");
       if (lawScore >= MIN_THRESHOLD) {
         recommendations.push({
           major: "Law",
@@ -215,15 +192,16 @@ const GradesAnalysis = () => {
           reasons: [
             `Strong Arabic language skills for legal documents`,
             `Historical knowledge for legal precedents`,
-            `Philosophical thinking for legal analysis`
-          ]
+            `Philosophical thinking for legal analysis`,
+            baccalaureateClass === "literature-humanities" ? "Perfect for your humanities background" : ""
+          ].filter(Boolean)
         });
       }
     }
 
     // Literature & Languages - Strong in multiple languages
     if (languagesAvg >= 72 && (gradePercentages.arabic >= 70 || gradePercentages.english >= 70)) {
-      const litScore = languagesAvg + (Math.max(gradePercentages.arabic, gradePercentages.english) - 70) * 0.2;
+      const litScore = (languagesAvg + (Math.max(gradePercentages.arabic, gradePercentages.english) - 70) * 0.2) * getClassBonus("Literature & Languages");
       recommendations.push({
         major: "Literature & Languages",
         match: Math.min(85, litScore),
@@ -231,14 +209,15 @@ const GradesAnalysis = () => {
         reasons: [
           `Strong language abilities (Avg: ${Math.round(languagesAvg)}%)`,
           `Excellent communication skills`,
-          gradePercentages.philosophy >= 65 ? `Philosophy enhances literary analysis` : `Strong foundation in language studies`
-        ]
+          gradePercentages.philosophy >= 65 ? `Philosophy enhances literary analysis` : `Strong foundation in language studies`,
+          baccalaureateClass === "literature-humanities" ? "Ideal for your literary background" : ""
+        ].filter(Boolean)
       });
     }
 
     // Psychology - Social sciences with specific focus
     if (gradePercentages.sociology >= 70 && gradePercentages.philosophy >= 65 && socialAvg >= 68) {
-      const psychScore = (gradePercentages.sociology * 0.4 + gradePercentages.philosophy * 0.3 + gradePercentages.biology * 0.2 + gradePercentages.english * 0.1);
+      const psychScore = (gradePercentages.sociology * 0.4 + gradePercentages.philosophy * 0.3 + gradePercentages.biology * 0.2 + gradePercentages.english * 0.1) * getClassBonus("Psychology");
       if (psychScore >= MIN_THRESHOLD) {
         recommendations.push({
           major: "Psychology",
@@ -247,15 +226,16 @@ const GradesAnalysis = () => {
           reasons: [
             `Strong understanding of human behavior (Sociology: ${grades.sociology}/20)`,
             `Philosophical thinking for psychological analysis`,
-            gradePercentages.biology >= 60 ? `Biology background supports neuropsychology` : `Strong social science foundation`
-          ]
+            gradePercentages.biology >= 60 ? `Biology background supports neuropsychology` : `Strong social science foundation`,
+            baccalaureateClass === "sociology-economics" ? "Great match for your social sciences track" : ""
+          ].filter(Boolean)
         });
       }
     }
 
     // Economics (Specialized) - Economics + Math + Philosophy
     if (gradePercentages.economics >= 75 && gradePercentages.mathematics >= 70) {
-      const econScore = gradePercentages.economics * 0.5 + gradePercentages.mathematics * 0.3 + gradePercentages.philosophy * 0.2;
+      const econScore = (gradePercentages.economics * 0.5 + gradePercentages.mathematics * 0.3 + gradePercentages.philosophy * 0.2) * getClassBonus("Economics");
       if (econScore >= MIN_THRESHOLD) {
         recommendations.push({
           major: "Economics",
@@ -264,25 +244,9 @@ const GradesAnalysis = () => {
           reasons: [
             `Outstanding economics performance (${grades.economics}/20)`,
             `Strong mathematical foundation for economic modeling`,
-            gradePercentages.philosophy >= 65 ? `Philosophical thinking enhances economic theory` : `Analytical skills for market analysis`
-          ]
-        });
-      }
-    }
-
-    // International Relations - Languages + Social Sciences
-    if (languagesAvg >= 70 && socialAvg >= 65 && gradePercentages.english >= 70) {
-      const irScore = (languagesAvg * 0.4 + socialAvg * 0.4 + gradePercentages.economics * 0.2);
-      if (irScore >= MIN_THRESHOLD) {
-        recommendations.push({
-          major: "International Relations",
-          match: Math.min(80, irScore),
-          description: "Study global politics, diplomacy, and international cooperation.",
-          reasons: [
-            `Strong language skills for international communication`,
-            `Good understanding of social and political dynamics`,
-            gradePercentages.economics >= 65 ? `Economics background for understanding global markets` : `Historical knowledge of international events`
-          ]
+            gradePercentages.philosophy >= 65 ? `Philosophical thinking enhances economic theory` : `Analytical skills for market analysis`,
+            baccalaureateClass === "sociology-economics" ? "Perfect for your economics background" : ""
+          ].filter(Boolean)
         });
       }
     }
@@ -318,6 +282,7 @@ const GradesAnalysis = () => {
     setShowResults(false);
     setRecommendations([]);
     setShowAllRecommendations(false);
+    setBaccalaureateClass("general-sciences");
     setGrades({
       arabic: 0,
       english: 0,
@@ -454,6 +419,61 @@ const GradesAnalysis = () => {
             <p className="text-gray-600 mt-2">Enter your Lebanese Baccalaureate grades to get personalized major recommendations</p>
           </div>
         </div>
+
+        {/* Baccalaureate Class Selection */}
+        <Card className="max-w-4xl mx-auto border-0 shadow-lg bg-white/80 backdrop-blur mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center text-gray-900">
+              <BookOpen className="h-6 w-6 mr-2 text-purple-600" />
+              Select Your Baccalaureate Class
+            </CardTitle>
+            <p className="text-sm text-gray-600">Choose your academic track to get more targeted recommendations</p>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup 
+              value={baccalaureateClass} 
+              onValueChange={(value) => setBaccalaureateClass(value as BaccalaureateClass)}
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            >
+              <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <RadioGroupItem value="general-sciences" id="general-sciences" />
+                <div className="flex-1">
+                  <Label htmlFor="general-sciences" className="font-medium cursor-pointer">
+                    General Sciences
+                  </Label>
+                  <p className="text-sm text-gray-600">Focus on mathematics, physics, and chemistry</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <RadioGroupItem value="life-sciences" id="life-sciences" />
+                <div className="flex-1">
+                  <Label htmlFor="life-sciences" className="font-medium cursor-pointer">
+                    Life Sciences
+                  </Label>
+                  <p className="text-sm text-gray-600">Emphasis on biology, chemistry, and health sciences</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <RadioGroupItem value="sociology-economics" id="sociology-economics" />
+                <div className="flex-1">
+                  <Label htmlFor="sociology-economics" className="font-medium cursor-pointer">
+                    Sociology and Economics
+                  </Label>
+                  <p className="text-sm text-gray-600">Social sciences, economics, and human behavior</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <RadioGroupItem value="literature-humanities" id="literature-humanities" />
+                <div className="flex-1">
+                  <Label htmlFor="literature-humanities" className="font-medium cursor-pointer">
+                    Literature and Humanities
+                  </Label>
+                  <p className="text-sm text-gray-600">Languages, literature, philosophy, and arts</p>
+                </div>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
 
         {/* Grades Input Form */}
         <Card className="max-w-4xl mx-auto border-0 shadow-lg bg-white/80 backdrop-blur">
