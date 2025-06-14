@@ -51,6 +51,50 @@ const GradesAnalysis = () => {
   const [showResults, setShowResults] = useState(false);
   const [showAllRecommendations, setShowAllRecommendations] = useState(false);
 
+  // Define which subjects are available for each baccalaureate class
+  const getAvailableSubjects = (baccClass: BaccalaureateClass): (keyof Grades)[] => {
+    const allSubjects: (keyof Grades)[] = [
+      'arabic', 'english', 'mathematics', 'physics', 'chemistry', 
+      'biology', 'history', 'geography', 'philosophy', 'economics', 'sociology'
+    ];
+
+    switch (baccClass) {
+      case "general-sciences":
+        // All courses except biology, economics, sociology
+        return allSubjects.filter(subject => 
+          !['biology', 'economics', 'sociology'].includes(subject)
+        );
+      case "life-sciences":
+        // All courses except economics, sociology
+        return allSubjects.filter(subject => 
+          !['economics', 'sociology'].includes(subject)
+        );
+      case "sociology-economics":
+      case "literature-humanities":
+        // All courses (no exclusions mentioned for these classes)
+        return allSubjects;
+      default:
+        return allSubjects;
+    }
+  };
+
+  const handleBaccalaureateClassChange = (newClass: BaccalaureateClass) => {
+    setBaccalaureateClass(newClass);
+    
+    // Reset grades for subjects that are not available in the new class
+    const availableSubjects = getAvailableSubjects(newClass);
+    const newGrades = { ...grades };
+    
+    // Set grades to 0 for subjects not available in the new class
+    Object.keys(newGrades).forEach(subject => {
+      if (!availableSubjects.includes(subject as keyof Grades)) {
+        newGrades[subject as keyof Grades] = 0;
+      }
+    });
+    
+    setGrades(newGrades);
+  };
+
   const handleGradeChange = (subject: keyof Grades, value: string) => {
     const numValue = Math.max(0, Math.min(20, parseFloat(value) || 0));
     setGrades(prev => ({ ...prev, [subject]: numValue }));
@@ -300,6 +344,20 @@ const GradesAnalysis = () => {
 
   const displayedRecommendations = showAllRecommendations ? recommendations : recommendations.slice(0, 3);
 
+  const subjectLabels: Record<keyof Grades, string> = {
+    arabic: "Arabic",
+    english: "English",
+    mathematics: "Mathematics",
+    physics: "Physics",
+    chemistry: "Chemistry",
+    biology: "Biology",
+    history: "History",
+    geography: "Geography",
+    philosophy: "Philosophy",
+    economics: "Economics",
+    sociology: "Sociology"
+  };
+
   if (showResults) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
@@ -432,7 +490,7 @@ const GradesAnalysis = () => {
           <CardContent>
             <RadioGroup 
               value={baccalaureateClass} 
-              onValueChange={(value) => setBaccalaureateClass(value as BaccalaureateClass)}
+              onValueChange={(value) => handleBaccalaureateClassChange(value as BaccalaureateClass)}
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
               <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
@@ -482,153 +540,27 @@ const GradesAnalysis = () => {
               <Calculator className="h-6 w-6 mr-2 text-blue-600" />
               Enter Your Lebanese Baccalaureate Grades
             </CardTitle>
-            <p className="text-sm text-gray-600">Please enter your grades (0-20) for each subject</p>
+            <p className="text-sm text-gray-600">
+              Please enter your grades (0-20) for the subjects in your {baccalaureateClass.replace('-', ' ')} track
+            </p>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="arabic">Arabic</Label>
-                <Input
-                  id="arabic"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.arabic || ''}
-                  onChange={(e) => handleGradeChange('arabic', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="english">English</Label>
-                <Input
-                  id="english"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.english || ''}
-                  onChange={(e) => handleGradeChange('english', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="mathematics">Mathematics</Label>
-                <Input
-                  id="mathematics"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.mathematics || ''}
-                  onChange={(e) => handleGradeChange('mathematics', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="physics">Physics</Label>
-                <Input
-                  id="physics"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.physics || ''}
-                  onChange={(e) => handleGradeChange('physics', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="chemistry">Chemistry</Label>
-                <Input
-                  id="chemistry"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.chemistry || ''}
-                  onChange={(e) => handleGradeChange('chemistry', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="biology">Biology</Label>
-                <Input
-                  id="biology"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.biology || ''}
-                  onChange={(e) => handleGradeChange('biology', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="history">History</Label>
-                <Input
-                  id="history"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.history || ''}
-                  onChange={(e) => handleGradeChange('history', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="geography">Geography</Label>
-                <Input
-                  id="geography"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.geography || ''}
-                  onChange={(e) => handleGradeChange('geography', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="philosophy">Philosophy</Label>
-                <Input
-                  id="philosophy"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.philosophy || ''}
-                  onChange={(e) => handleGradeChange('philosophy', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="economics">Economics</Label>
-                <Input
-                  id="economics"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.economics || ''}
-                  onChange={(e) => handleGradeChange('economics', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sociology">Sociology</Label>
-                <Input
-                  id="sociology"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={grades.sociology || ''}
-                  onChange={(e) => handleGradeChange('sociology', e.target.value)}
-                  placeholder="Grade (0-20)"
-                />
-              </div>
+              {getAvailableSubjects(baccalaureateClass).map((subject) => (
+                <div key={subject} className="space-y-2">
+                  <Label htmlFor={subject}>{subjectLabels[subject]}</Label>
+                  <Input
+                    id={subject}
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades[subject] || ''}
+                    onChange={(e) => handleGradeChange(subject, e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+              ))}
             </div>
 
             <Button 
