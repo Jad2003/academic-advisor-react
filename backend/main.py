@@ -1,8 +1,9 @@
-
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+
+import os
 
 app = FastAPI(
     title="EduGuideAI Backend",
@@ -17,6 +18,98 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ------------ LLM Helpers ----------------
+try:
+    from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
+    import torch
+
+    # You probably have to specify the path to your local Llama3.2:3b, update path as necessary:
+    LLAMA_PATH = os.environ.get("LLAMA_MODEL_PATH", "./llama3.2-3b")
+
+    tokenizer = AutoTokenizer.from_pretrained(LLAMA_PATH)
+    model = AutoModelForCausalLM.from_pretrained(LLAMA_PATH, torch_dtype=torch.float16, device_map="auto")
+    llm_chat = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=512)
+except Exception as e:
+    llm_chat = None
+
+def generate_llama_question(previous_qas: List[Dict[str, Any]]) -> Dict:
+    """
+    previous_qas: list of {'question': str, 'answer': str}
+    Returns: dict {"question": str, "options": [str, str, ...]}
+    """
+    prompt = (
+        "You are a career guidance AI. "
+        "Based on the following previous question-answer pairs, generate the next personality-related multiple choice question. "
+        "Provide the next question and a list of 5 short, relevant multiple-choice options. "
+        "Strictly return a JSON object: {\"question\": \"...\", \"options\": [\"...\", \"...\", ...]}.\n\n"
+        f"Previous QAs: {previous_qas}\n"
+        "Next question:"
+    )
+    if not llm_chat:
+        # Fallback for dev/test: return a canned question
+        return {
+            "question": "Do you prefer working alone or as part of a team?",
+            "options": ["Alone", "Small team", "Big team", "It depends", "No preference"]
+        }
+    output = llm_chat(prompt)[0]['generated_text']
+    import re, json
+    try:
+        match = re.search(r"\{.*\}", output, re.DOTALL)
+        json_out = json.loads(match.group())
+        return json_out
+    except:
+        # fallback on errors
+        return {
+            "question": "What motivates you the most in your studies?",
+            "options": ["Personal growth", "Collaboration", "Achievement", "Creativity", "Helping others"]
+        }
+
+def suggest_majors_from_llama(qas: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    qas: list of {'question': str, 'answer': str}
+    Returns: list of {"major": "...", "match": ..., "description": "...", "traits": [...]}
+    """
+    prompt = (
+        "You are a career guidance AI. Given the following 6 question-answer pairs from a personality assessment, "
+        "suggest up to 3 best-fit university majors for the student. For each, give: major name, match (out of 100), "
+        "1-sentence description, and 3 bullet-point personality trait matches. "
+        "Strictly respond as a JSON list like:\n"
+        "[{\"major\": \"Engineering\", \"match\": 93, \"description\": \"...\", \"traits\": [\"..\",\"..\",\"..\"]}, ...]\n"
+        f"QAs: {qas}"
+    )
+    if not llm_chat:
+        # fallback for dev/test
+        return [
+            {
+                "major": "Engineering",
+                "match": 93,
+                "description": "Design and build solutions using technical and analytical skills.",
+                "traits": ["Analytical", "Technical aptitude", "Problem-solving"]
+            },
+            {
+                "major": "Psychology",
+                "match": 87,
+                "description": "Help people understand and improve mental processes.",
+                "traits": ["Empathy", "Communication", "Insightful"]
+            }
+        ]
+    output = llm_chat(prompt)[0]['generated_text']
+    import re, json
+    try:
+        match = re.search(r"\[.*\]", output, re.DOTALL)
+        majors = json.loads(match.group())
+        return majors
+    except:
+        # fallback
+        return [
+            {
+                "major": "Business Administration",
+                "match": 80,
+                "description": "Lead and manage organizations.",
+                "traits": ["Leadership", "Strategic thinking", "Collaboration"]
+            }
+        ]
 
 # ---------- GRADE BASED ANALYSIS RULE-BASED AGENT ----------
 
@@ -238,11 +331,23 @@ def analyze_grades(request: GradesRequest):
     return sorted_recs
 
 
-# ---------- PERSONALITY ASSESSMENT AGENT (RULE-BASED & LLM) ----------
+# ---------- LLM-based Personality Assessment (Adaptive Q/A) ----------
 
-class PersonalityRequest(BaseModel):
-    answers: Dict[str, int]
-    engine: str = "rule"  # "rule" or "ml"
+class NextQuestionRequest(BaseModel):
+    previous_qas: List[Dict[str, str]] = []
+
+class NextQuestionResponse(BaseModel):
+    question: str
+    options: List[str]
+
+@app.post("/api/personality-questions", response_model=NextQuestionResponse)
+def get_next_question(req: NextQuestionRequest):
+    # For step N, req.previous_qas will have 0 to N-1 Q/A pairs.
+    q = generate_llama_question(req.previous_qas)
+    return NextQuestionResponse(**q)
+
+class RecommendMajorsRequest(BaseModel):
+    qas: List[Dict[str, str]]  # List of 6 Q/A dicts
 
 class AssessmentResult(BaseModel):
     major: str
@@ -250,56 +355,18 @@ class AssessmentResult(BaseModel):
     description: str
     traits: List[str]
 
-@app.post("/api/personality-assessment", response_model=List[AssessmentResult])
-def personality_assessment(request: PersonalityRequest):
-    answers = request.answers
-    engine = request.engine
-
-    if engine == "ml":
-        # --- MOCK LLM RESPONSE ---
-        # This is where you would add llama/mistral inference, e.g. with transformers or llama.cpp bindings
-        return [{
-            "major": "Computer Science",
-            "match": 90,
-            "description": "An LLM (e.g. Llama/Mistral) recommends Computer Science based on your responses.",
-            "traits": ["AI-provided insight", "Logical thinker", "Tech-oriented"]
-        }]
-    # RULE-BASED:
-    traits = {"analytical": 0,"creative": 0,"social": 0,"technical": 0,"leadership": 0,"empathetic": 0,"practical": 0,"research": 0,"innovative": 0,"collaborative": 0}
-
-    # For brevity, only partial rule extraction here. (Expand as needed!)
-    for qid, answer in answers.items():
-        if qid == "q1_interest":
-            if answer == 0: traits["analytical"] += 4; traits["technical"] += 2
-            if answer == 1: traits["creative"] += 4; traits["empathetic"] += 1
-            if answer == 2: traits["social"] += 4; traits["empathetic"] += 2
-            if answer == 3: traits["technical"] += 4; traits["practical"] += 2
-            if answer == 4: traits["analytical"] += 3; traits["research"] += 3
-        if qid == "q2_environment":
-            if answer == 0: traits["analytical"] += 3; traits["research"] += 2
-            if answer == 1: traits["social"] += 3; traits["leadership"] += 2; traits["collaborative"] += 3
-            if answer == 2: traits["creative"] += 3; traits["innovative"] += 2
-            if answer == 3: traits["technical"] += 3; traits["practical"] += 2
-            if answer == 4: traits["practical"] += 3; traits["social"] += 1
-
+@app.post("/api/personality-recommend", response_model=List[AssessmentResult])
+def recommend_majors(req: RecommendMajorsRequest):
+    results = suggest_majors_from_llama(req.qas)
+    # Convert possible float->int and ensure keys are present
     recs = []
-    # Example: Engineering
-    if traits["technical"] + traits["analytical"] >= 8 and traits["practical"] >= 3:
+    for r in results:
         recs.append(AssessmentResult(
-            major="Engineering",
-            match=min(95, 65 + (traits["technical"] + traits["analytical"]) * 3),
-            description="Design and build innovative solutions to complex technical challenges.",
-            traits=["Strong technical aptitude", "Analytical problem-solving", "Practical application skills"]
+            major=r["major"],
+            match=float(r["match"]),
+            description=r["description"],
+            traits=r.get("traits", [])
         ))
-
-    if not recs:
-        recs.append(AssessmentResult(
-            major="Liberal Arts",
-            match=70,
-            description="Explore diverse interests while developing critical thinking and communication skills.",
-            traits=["Well-rounded interests", "Adaptable mindset", "Broad intellectual curiosity"]
-        ))
-
     return recs
 
 # Health probe
