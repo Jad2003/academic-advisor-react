@@ -1,4 +1,3 @@
-
 import os
 os.environ["LLAMA_MODEL_PATH"] = r"C:\Users\user\.ollama\models"
 
@@ -8,7 +7,14 @@ try:
 
     LLAMA_PATH = os.environ.get("LLAMA_MODEL_PATH", r"C:\Users\user\.ollama\models")
     tokenizer = AutoTokenizer.from_pretrained(LLAMA_PATH)
-    model = AutoModelForCausalLM.from_pretrained(LLAMA_PATH, torch_dtype=torch.float16, device_map="auto")
+
+    # Detect if CUDA (GPU) is available, else use CPU mode
+    if torch.cuda.is_available():
+        model = AutoModelForCausalLM.from_pretrained(
+            LLAMA_PATH, torch_dtype=torch.float16, device_map="auto"
+        )
+    else:
+        model = AutoModelForCausalLM.from_pretrained(LLAMA_PATH)
     llm_chat = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=512)
 except Exception as e:
     print(f"Error loading Llama model from {os.environ['LLAMA_MODEL_PATH']}: {e}")

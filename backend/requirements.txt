@@ -4,13 +4,14 @@ fastapi
 uvicorn
 pydantic
 transformers
-# See below for proper PyTorch (GPU) install instructions
-# Do NOT run: "pip install torch" directly; instead, use:
+# See below for proper PyTorch (GPU & CPU) install instructions
 
+# --- GPU Instructions ---
 # For CUDA GPU (RTX 3050 or newer, CUDA 12.1):
 # Run this in your terminal before installing anything else:
 # pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-# If you are CPU only, uncomment the following:
-# torch
+# --- CPU-only Instructions ---
+# If you have NO supported GPU, comment out the above, and UNCOMMENT the line below:
+torch
 
