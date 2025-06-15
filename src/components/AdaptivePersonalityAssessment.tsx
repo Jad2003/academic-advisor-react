@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +5,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Brain, ChevronRight } from "lucide-react";
+
+type AssessmentEngineType = "rule" | "ml";
 
 interface Question {
   id: string;
@@ -22,11 +23,14 @@ interface AssessmentResult {
 }
 
 interface AdaptivePersonalityAssessmentProps {
-  onComplete: (results: AssessmentResult[]) => void;
-  onPrevious: () => void;
+  onComplete: (assessmentResults: any) => void;
+  onPrevious?: () => void;
 }
 
-const AdaptivePersonalityAssessment = ({ onComplete, onPrevious }: AdaptivePersonalityAssessmentProps) => {
+const AdaptivePersonalityAssessment = ({
+  onComplete,
+  onPrevious,
+}: AdaptivePersonalityAssessmentProps) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<{ [key: string]: number }>({});
   const [questionFlow, setQuestionFlow] = useState<Question[]>([]);
@@ -462,12 +466,48 @@ const AdaptivePersonalityAssessment = ({ onComplete, onPrevious }: AdaptivePerso
   const totalQuestions = 6;
   const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
 
+  const [engine, setEngine] = useState<AssessmentEngineType>("rule");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleEngineChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setEngine(e.target.value as AssessmentEngineType);
+  };
+
+  const submitAssessment = (assessmentPayload: any) => {
+    setIsLoading(true);
+    fetch(`/api/personality-analysis?engine=${engine}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(assessmentPayload),
+    })
+    .then((res) => res.json())
+    .then((data) => {
+      onComplete(data.recommendations ?? []);
+    })
+    .catch(() => {/* error toast handled by parent */})
+    .finally(() => setIsLoading(false));
+  };
+
   if (!currentQuestion) {
     return <div>Loading...</div>;
   }
 
   return (
     <div>
+      <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <label htmlFor="engine" className="font-semibold text-gray-800">
+          Select Engine:
+        </label>
+        <select
+          id="engine"
+          value={engine}
+          onChange={handleEngineChange}
+          className="border border-gray-300 rounded py-1 px-3"
+        >
+          <option value="rule">Rule-based</option>
+          <option value="ml">ML-based</option>
+        </select>
+      </div>
       {/* Progress Bar */}
       <div className="max-w-2xl mx-auto mb-8">
         <div className="flex justify-between items-center mb-2">
