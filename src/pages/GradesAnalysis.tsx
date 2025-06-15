@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,13 +46,18 @@ const GradesAnalysis = () => {
   const [recommendations, setRecommendations] = useState<MajorRecommendation[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [showAllRecommendations, setShowAllRecommendations] = useState(false);
+  const [engineType, setEngineType] = useState<"rule" | "ml">("rule"); // NEW: engine (rule or ml)
 
   const handleGradeChange = (subject: keyof Grades, value: string) => {
     const numValue = Math.max(0, Math.min(20, parseFloat(value) || 0));
     setGrades(prev => ({ ...prev, [subject]: numValue }));
   };
 
-  const analyzeGrades = () => {
+  const handleEngineChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setEngineType(event.target.value as "rule" | "ml");
+  };
+
+  const analyzeGrades = async () => {
     console.log("Analyzing grades:", grades);
     
     // Convert grades to percentage for easier calculation (Lebanese system is out of 20)
@@ -433,6 +437,210 @@ const GradesAnalysis = () => {
               </Button>
             </Link>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!showResults) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
+        <div className="container mx-auto px-4">
+          {/* Header */}
+          <div className="flex items-center mb-8">
+            <Link to="/" className="mr-4">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back Home
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Grade-Based Analysis</h1>
+              <p className="text-gray-600 mt-2">Enter your Lebanese Baccalaureate grades to get personalized major recommendations</p>
+            </div>
+          </div>
+
+          {/* Engine Selector */}
+          <div className="flex justify-end mb-2">
+            <label htmlFor="engine-select" className="mr-2 text-gray-700 font-medium">
+              AI Engine:
+            </label>
+            <select
+              id="engine-select"
+              value={engineType}
+              onChange={handleEngineChange}
+              className="border rounded px-2 py-1"
+            >
+              <option value="rule">Rule-Based</option>
+              <option value="ml">ML-Based</option>
+            </select>
+          </div>
+
+          {/* Grades Input Form */}
+          <Card className="max-w-4xl mx-auto border-0 shadow-lg bg-white/80 backdrop-blur">
+            <CardHeader>
+              <CardTitle className="flex items-center text-gray-900">
+                <Calculator className="h-6 w-6 mr-2 text-blue-600" />
+                Enter Your Lebanese Baccalaureate Grades
+              </CardTitle>
+              <p className="text-sm text-gray-600">Please enter your grades (0-20) for each subject</p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="arabic">Arabic</Label>
+                  <Input
+                    id="arabic"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.arabic || ''}
+                    onChange={(e) => handleGradeChange('arabic', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="english">English</Label>
+                  <Input
+                    id="english"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.english || ''}
+                    onChange={(e) => handleGradeChange('english', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mathematics">Mathematics</Label>
+                  <Input
+                    id="mathematics"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.mathematics || ''}
+                    onChange={(e) => handleGradeChange('mathematics', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="physics">Physics</Label>
+                  <Input
+                    id="physics"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.physics || ''}
+                    onChange={(e) => handleGradeChange('physics', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="chemistry">Chemistry</Label>
+                  <Input
+                    id="chemistry"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.chemistry || ''}
+                    onChange={(e) => handleGradeChange('chemistry', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="biology">Biology</Label>
+                  <Input
+                    id="biology"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.biology || ''}
+                    onChange={(e) => handleGradeChange('biology', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="history">History</Label>
+                  <Input
+                    id="history"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.history || ''}
+                    onChange={(e) => handleGradeChange('history', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="geography">Geography</Label>
+                  <Input
+                    id="geography"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.geography || ''}
+                    onChange={(e) => handleGradeChange('geography', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="philosophy">Philosophy</Label>
+                  <Input
+                    id="philosophy"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.philosophy || ''}
+                    onChange={(e) => handleGradeChange('philosophy', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="economics">Economics</Label>
+                  <Input
+                    id="economics"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.economics || ''}
+                    onChange={(e) => handleGradeChange('economics', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sociology">Sociology</Label>
+                  <Input
+                    id="sociology"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={grades.sociology || ''}
+                    onChange={(e) => handleGradeChange('sociology', e.target.value)}
+                    placeholder="Grade (0-20)"
+                  />
+                </div>
+              </div>
+
+              <Button 
+                onClick={analyzeGrades} 
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3"
+              >
+                <BookOpen className="h-5 w-5 mr-2" />
+                Analyze My Grades
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
