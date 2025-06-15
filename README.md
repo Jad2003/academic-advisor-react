@@ -1,4 +1,3 @@
-
 # EduGuide AI - Career Guidance Platform
 
 A modern web application built with React, TypeScript, and Tailwind CSS that helps students discover career paths through personality assessments and grade analysis.
@@ -85,3 +84,53 @@ src/
 ## 📄 License
 
 This project is open source and available under the [MIT License](LICENSE).
+
+## 🐍 Backend Development
+
+A Python FastAPI backend powers grade-based and personality assessments.
+
+### Backend Setup
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+- The backend will run at `http://localhost:8000`
+
+#### Endpoints
+
+- `POST /api/grades-analysis`  
+  Params:  
+    ```json
+    {
+      "baccalaureateClass": "general-sciences",
+      "grades": {"arabic": 15, "mathematics": 19, ...}
+    }
+    ```
+  Returns:  
+    List of recommended majors: `[{"major": "Engineering", "match": 90, ...}, ...]`
+
+- `POST /api/personality-assessment`  
+  Params:  
+    ```json
+    {
+      "answers": {
+        "q1_interest": 0,
+        "q2_environment": 1,
+        ...
+      },
+      "engine": "rule" | "ml"
+    }
+    ```
+  Returns:  
+    List of major recommendations.
+
+### LLM/ML Integration
+
+For the `"ml"` engine in personality assessment, connect a local LLAMA/Mistral model (not included here—add your integration in the `/api/personality-assessment` handler).
+
+See `backend/main.py` for a stub where the LLM call should be placed.
