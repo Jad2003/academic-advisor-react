@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +31,6 @@ const AdaptivePersonalityAssessment = ({ onComplete, onPrevious }: AdaptivePerso
   const [answers, setAnswers] = useState<{ [key: string]: number }>({});
   const [questionFlow, setQuestionFlow] = useState<Question[]>([]);
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
-  const [engineType, setEngineType] = useState<"rule" | "ml">("rule");
 
   // Base questions that determine the flow
   const baseQuestions: Question[] = [
@@ -270,34 +270,192 @@ const AdaptivePersonalityAssessment = ({ onComplete, onPrevious }: AdaptivePerso
     setCurrentAnswer("");
   };
 
-  const analyzeResults = async () => {
-    // NEW: call the selected backend API
-    try {
-      const payload = { answers, engine: engineType };
-      const endpoint =
-        engineType === "rule"
-          ? "http://localhost:8000/api/personality-analysis/rule"
-          : "http://localhost:8000/api/personality-analysis/ml";
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) throw new Error("Backend error");
-      const data = await response.json();
-      onComplete(data.recommendations);
-    } catch (err) {
-      onComplete([{
-        major: "Error",
-        match: 0,
-        description: "Could not fetch recommendations from backend.",
-        traits: [],
-      }]);
-    }
-  };
+  const analyzeResults = () => {
+    console.log("Analyzing adaptive personality assessment:", answers);
+    
+    // Enhanced analysis based on adaptive responses
+    const traits = {
+      analytical: 0,
+      creative: 0,
+      social: 0,
+      technical: 0,
+      leadership: 0,
+      empathetic: 0,
+      practical: 0,
+      research: 0,
+      innovative: 0,
+      collaborative: 0
+    };
 
-  const handleEngineChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setEngineType(event.target.value as "rule" | "ml");
+    // Analyze answers with weighted scoring
+    Object.entries(answers).forEach(([questionId, answerIndex]) => {
+      switch (questionId) {
+        case "q1_interest":
+          if (answerIndex === 0) { traits.analytical += 4; traits.technical += 2; }
+          if (answerIndex === 1) { traits.creative += 4; traits.empathetic += 1; }
+          if (answerIndex === 2) { traits.social += 4; traits.empathetic += 2; }
+          if (answerIndex === 3) { traits.technical += 4; traits.practical += 2; }
+          if (answerIndex === 4) { traits.analytical += 3; traits.research += 3; }
+          break;
+
+        case "q2_environment":
+          if (answerIndex === 0) { traits.analytical += 3; traits.research += 2; }
+          if (answerIndex === 1) { traits.social += 3; traits.leadership += 2; traits.collaborative += 3; }
+          if (answerIndex === 2) { traits.creative += 3; traits.innovative += 2; }
+          if (answerIndex === 3) { traits.technical += 3; traits.practical += 2; }
+          if (answerIndex === 4) { traits.practical += 3; traits.social += 1; }
+          break;
+
+        case "q3_technical":
+          if (answerIndex === 0) { traits.technical += 4; traits.practical += 3; }
+          if (answerIndex === 1) { traits.technical += 4; traits.analytical += 2; traits.innovative += 2; }
+          if (answerIndex === 2) { traits.analytical += 4; traits.research += 2; }
+          if (answerIndex === 3) { traits.research += 4; traits.analytical += 2; }
+          if (answerIndex === 4) { traits.creative += 2; traits.technical += 3; }
+          break;
+
+        case "q3_creative":
+          if (answerIndex === 0) { traits.creative += 4; traits.practical += 1; }
+          if (answerIndex === 1) { traits.creative += 4; traits.empathetic += 2; }
+          if (answerIndex === 2) { traits.creative += 4; traits.social += 1; }
+          if (answerIndex === 3) { traits.creative += 3; traits.technical += 2; traits.innovative += 2; }
+          if (answerIndex === 4) { traits.creative += 3; traits.practical += 2; }
+          break;
+
+        case "q3_social":
+          if (answerIndex === 0) { traits.empathetic += 4; traits.social += 2; }
+          if (answerIndex === 1) { traits.social += 3; traits.leadership += 2; }
+          if (answerIndex === 2) { traits.leadership += 3; traits.social += 3; }
+          if (answerIndex === 3) { traits.leadership += 4; traits.social += 2; traits.collaborative += 2; }
+          if (answerIndex === 4) { traits.research += 3; traits.social += 2; }
+          break;
+
+        // Additional scoring for questions 4-6
+        case "q4_problem_solving":
+        case "q4_inspiration":
+        case "q4_impact":
+          // Add scoring based on the specific question context
+          if (answerIndex === 0) { traits.analytical += 2; }
+          if (answerIndex === 1) { traits.practical += 2; }
+          if (answerIndex === 2) { traits.creative += 2; traits.innovative += 1; }
+          if (answerIndex === 3) { traits.research += 2; }
+          if (answerIndex === 4) { traits.collaborative += 2; }
+          break;
+      }
+    });
+
+    // Generate recommendations based on dominant traits
+    const recommendations: AssessmentResult[] = [];
+
+    // Engineering
+    if (traits.technical + traits.analytical >= 8 && traits.practical >= 3) {
+      recommendations.push({
+        major: "Engineering",
+        match: Math.min(95, 65 + (traits.technical + traits.analytical) * 3),
+        description: "Design and build innovative solutions to complex technical challenges.",
+        traits: ["Strong technical aptitude", "Analytical problem-solving", "Practical application skills"]
+      });
+    }
+
+    // Computer Science
+    if (traits.technical >= 5 && traits.analytical >= 4) {
+      recommendations.push({
+        major: "Computer Science", 
+        match: Math.min(92, 62 + (traits.technical + traits.analytical) * 2.5),
+        description: "Develop cutting-edge software and computational solutions.",
+        traits: ["Technical expertise", "Logical reasoning", "System design thinking"]
+      });
+    }
+
+    // Architecture
+    if (traits.creative >= 4 && traits.technical >= 3 && traits.practical >= 3) {
+      recommendations.push({
+        major: "Architecture",
+        match: Math.min(88, 60 + (traits.creative + traits.technical) * 2.5),
+        description: "Design buildings and spaces that blend creativity with technical precision.",
+        traits: ["Creative design skills", "Technical understanding", "Spatial reasoning"]
+      });
+    }
+
+    // Psychology
+    if (traits.empathetic >= 5 && traits.social >= 4) {
+      recommendations.push({
+        major: "Psychology",
+        match: Math.min(90, 63 + (traits.empathetic + traits.social) * 3),
+        description: "Understand human behavior and help people overcome challenges.",
+        traits: ["High empathy", "Social understanding", "Research interest in human behavior"]
+      });
+    }
+
+    // Medicine
+    if (traits.empathetic >= 4 && traits.analytical >= 4 && traits.practical >= 3) {
+      recommendations.push({
+        major: "Medicine",
+        match: Math.min(93, 65 + (traits.empathetic + traits.analytical) * 2.8),
+        description: "Combine scientific knowledge with compassionate patient care.",
+        traits: ["Empathetic nature", "Analytical thinking", "Practical problem-solving"]
+      });
+    }
+
+    // Creative Fields (Fine Arts, Graphic Design)
+    if (traits.creative >= 6) {
+      const artField = traits.innovative >= 3 ? "Graphic Design" : "Fine Arts";
+      recommendations.push({
+        major: artField,
+        match: Math.min(88, 60 + traits.creative * 4),
+        description: traits.innovative >= 3 ? 
+          "Create visual communications that blend artistry with technology." :
+          "Express creativity and bring artistic visions to life through traditional and contemporary media.",
+        traits: ["Strong creative expression", "Artistic vision", "Innovative thinking"]
+      });
+    }
+
+    // Business Administration
+    if (traits.leadership >= 4 && (traits.practical >= 3 || traits.social >= 3)) {
+      recommendations.push({
+        major: "Business Administration",
+        match: Math.min(85, 58 + (traits.leadership + traits.practical) * 2.5),
+        description: "Lead organizations and drive business innovation.",
+        traits: ["Leadership qualities", "Strategic thinking", "Business acumen"]
+      });
+    }
+
+    // International Relations
+    if (traits.social >= 4 && traits.collaborative >= 3 && traits.analytical >= 3) {
+      recommendations.push({
+        major: "International Relations",
+        match: Math.min(82, 60 + (traits.social + traits.collaborative) * 2.5),
+        description: "Navigate global politics and foster international cooperation.",
+        traits: ["Global perspective", "Collaborative skills", "Political analysis"]
+      });
+    }
+
+    // Research Sciences
+    if (traits.research >= 5 && traits.analytical >= 4) {
+      recommendations.push({
+        major: "Research Sciences",
+        match: Math.min(87, 61 + (traits.research + traits.analytical) * 2.8),
+        description: "Conduct research to advance human knowledge and understanding.",
+        traits: ["Research methodology", "Analytical thinking", "Scientific curiosity"]
+      });
+    }
+
+    // Sort and limit recommendations
+    const finalResults = recommendations
+      .sort((a, b) => b.match - a.match)
+      .slice(0, 3); // Limit to top 3 for precision
+
+    // Ensure we have at least one recommendation
+    if (finalResults.length === 0) {
+      finalResults.push({
+        major: "Liberal Arts",
+        match: 70,
+        description: "Explore diverse interests while developing critical thinking and communication skills.",
+        traits: ["Well-rounded interests", "Adaptable mindset", "Broad intellectual curiosity"]
+      });
+    }
+
+    onComplete(finalResults);
   };
 
   const currentQuestion = questionFlow[currentQuestionIndex];
@@ -310,21 +468,6 @@ const AdaptivePersonalityAssessment = ({ onComplete, onPrevious }: AdaptivePerso
 
   return (
     <div>
-      {/* Engine Selector */}
-      <div className="flex justify-end mb-4">
-        <label htmlFor="engine-select" className="mr-2 text-gray-700 font-medium">
-          AI Engine:
-        </label>
-        <select
-          id="engine-select"
-          value={engineType}
-          onChange={handleEngineChange}
-          className="border rounded px-2 py-1"
-        >
-          <option value="rule">Rule-Based</option>
-          <option value="ml">ML-Based</option>
-        </select>
-      </div>
       {/* Progress Bar */}
       <div className="max-w-2xl mx-auto mb-8">
         <div className="flex justify-between items-center mb-2">
