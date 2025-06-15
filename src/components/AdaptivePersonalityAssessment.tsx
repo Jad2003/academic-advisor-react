@@ -30,6 +30,7 @@ const AdaptivePersonalityAssessment = ({ onComplete, onPrevious }: AdaptivePerso
   const [answers, setAnswers] = useState<{ [key: string]: number }>({});
   const [questionFlow, setQuestionFlow] = useState<Question[]>([]);
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
+  const [engineType, setEngineType] = useState<"rule" | "ml">("rule");
 
   // Base questions that determine the flow
   const baseQuestions: Question[] = [
