@@ -100,226 +100,42 @@ const GradesAnalysis = () => {
     setGrades(prev => ({ ...prev, [subject]: numValue }));
   };
 
-  const analyzeGrades = () => {
-    console.log("Analyzing grades:", grades);
-    console.log("Baccalaureate class:", baccalaureateClass);
-    
-    // Convert grades to percentage for easier calculation (Lebanese system is out of 20)
-    const gradePercentages = Object.fromEntries(
-      Object.entries(grades).map(([key, value]) => [key, (value / 20) * 100])
-    );
-    
-    // Enhanced rule-based AI logic with better subject correlation and class-specific weighting
-    const recommendations: MajorRecommendation[] = [];
-    
-    // Calculate subject group averages for better precision
-    const stemAvg = (gradePercentages.mathematics + gradePercentages.physics + gradePercentages.chemistry) / 3;
-    const bioMedAvg = (gradePercentages.biology + gradePercentages.chemistry + gradePercentages.physics) / 3;
-    const languagesAvg = (gradePercentages.arabic + gradePercentages.english) / 2;
-    const socialAvg = (gradePercentages.history + gradePercentages.geography + gradePercentages.sociology + gradePercentages.philosophy) / 4;
-    const businessAvg = (gradePercentages.economics + gradePercentages.mathematics + gradePercentages.english) / 3;
+  const analyzeGrades = async () => {
+    console.log("Sending grades for analysis:", { grades, baccalaureateClass });
+    toast.info("Analyzing your grades...");
 
-    // Set minimum threshold for recommendations
-    const MIN_THRESHOLD = 65;
-
-    // Class-specific bonus multiplier
-    const getClassBonus = (major: string) => {
-      switch (baccalaureateClass) {
-        case "general-sciences":
-          if (["Engineering", "Computer Science", "Mathematics", "Physics", "Architecture"].includes(major)) return 1.1;
-          break;
-        case "life-sciences":
-          if (["Medicine", "Pharmacy", "Dentistry", "Nursing", "Biology", "Biotechnology"].includes(major)) return 1.1;
-          break;
-        case "sociology-economics":
-          if (["Business Administration", "Economics", "Psychology", "International Relations", "Sociology"].includes(major)) return 1.1;
-          break;
-        case "literature-humanities":
-          if (["Literature & Languages", "Law", "Philosophy", "History", "Journalism"].includes(major)) return 1.1;
-          break;
-      }
-      return 1.0;
-    };
-
-    // Engineering - Requires strong Math + Physics combination
-    if (gradePercentages.mathematics >= 75 && gradePercentages.physics >= 70 && stemAvg >= 72) {
-      const engineeringScore = (stemAvg + (gradePercentages.mathematics - 70) * 0.3) * getClassBonus("Engineering");
-      recommendations.push({
-        major: "Engineering",
-        match: Math.min(95, engineeringScore),
-        description: "Design and build solutions to technical problems using mathematics and science.",
-        reasons: [
-          `Strong mathematics foundation (${grades.mathematics}/20)`,
-          `Excellent physics understanding (${grades.physics}/20)`,
-          `STEM subjects average: ${Math.round(stemAvg)}%`,
-          baccalaureateClass === "general-sciences" ? "Perfect match for your General Sciences background" : ""
-        ].filter(Boolean)
+    try {
+      // This is where you would call your Python backend.
+      // You need to create this API endpoint.
+      const response = await fetch('/api/grade-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ grades, baccalaureateClass }),
       });
-    }
 
-    // Computer Science - Math + Logic focus
-    if (gradePercentages.mathematics >= 70 && (gradePercentages.physics >= 65 || gradePercentages.economics >= 65)) {
-      const csScore = (gradePercentages.mathematics * 0.6 + gradePercentages.physics * 0.25 + gradePercentages.english * 0.15) * getClassBonus("Computer Science");
-      if (csScore >= MIN_THRESHOLD) {
-        recommendations.push({
-          major: "Computer Science",
-          match: Math.min(92, csScore),
-          description: "Develop software, algorithms, and computing systems.",
-          reasons: [
-            `Strong mathematical reasoning (${grades.mathematics}/20)`,
-            `Logical problem-solving abilities`,
-            gradePercentages.physics >= 65 ? `Physics foundation supports computational thinking` : `Economics background aids algorithmic thinking`,
-            baccalaureateClass === "general-sciences" ? "Ideal for your technical background" : ""
-          ].filter(Boolean)
-        });
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
       }
-    }
 
-    // Medicine - Bio + Chem + Physics trinity
-    if (gradePercentages.biology >= 75 && gradePercentages.chemistry >= 70 && bioMedAvg >= 72) {
-      const medScore = (bioMedAvg + (gradePercentages.biology - 70) * 0.4) * getClassBonus("Medicine");
-      recommendations.push({
-        major: "Medicine",
-        match: Math.min(97, medScore),
-        description: "Study human health, disease prevention, and medical treatment.",
-        reasons: [
-          `Outstanding biology performance (${grades.biology}/20)`,
-          `Strong chemistry foundation (${grades.chemistry}/20)`,
-          `Medical sciences average: ${Math.round(bioMedAvg)}%`,
-          baccalaureateClass === "life-sciences" ? "Perfect alignment with your Life Sciences track" : ""
-        ].filter(Boolean)
-      });
-    }
+      const data: MajorRecommendation[] = await response.json();
 
-    // Pharmacy - Chemistry focused with Biology
-    if (gradePercentages.chemistry >= 75 && gradePercentages.biology >= 65 && gradePercentages.mathematics >= 60) {
-      const pharmScore = (gradePercentages.chemistry * 0.5 + gradePercentages.biology * 0.3 + gradePercentages.mathematics * 0.2) * getClassBonus("Pharmacy");
-      if (pharmScore >= MIN_THRESHOLD) {
-        recommendations.push({
-          major: "Pharmacy",
-          match: Math.min(90, pharmScore),
-          description: "Study drug development, medication management, and pharmaceutical sciences.",
-          reasons: [
-            `Excellent chemistry mastery (${grades.chemistry}/20)`,
-            `Strong biological sciences foundation`,
-            `Mathematical skills for pharmaceutical calculations`,
-            baccalaureateClass === "life-sciences" ? "Great fit for your scientific background" : ""
-          ].filter(Boolean)
-        });
+      console.log("Received recommendations:", data);
+
+      if (data && data.length > 0) {
+        setRecommendations(data);
+        setShowResults(true);
+        setShowAllRecommendations(false);
+        toast.success("Analysis complete! Check your recommendations below.");
+      } else {
+        toast.warning("No specific recommendations could be generated from your grades.");
+        setRecommendations([]);
       }
+    } catch (error) {
+      console.error("Failed to analyze grades:", error);
+      toast.error("An error occurred while analyzing your grades. Please check the console for details.");
     }
-
-    // Business Administration - Economics + Math + Languages
-    if (gradePercentages.economics >= 70 && businessAvg >= 68) {
-      const businessScore = (businessAvg + (gradePercentages.economics - 65) * 0.3) * getClassBonus("Business Administration");
-      recommendations.push({
-        major: "Business Administration",
-        match: Math.min(88, businessScore),
-        description: "Learn management, finance, and organizational leadership.",
-        reasons: [
-          `Strong economics understanding (${grades.economics}/20)`,
-          `Good mathematical skills for financial analysis`,
-          `Language skills for business communication`,
-          baccalaureateClass === "sociology-economics" ? "Excellent match for your academic background" : ""
-        ].filter(Boolean)
-      });
-    }
-
-    // Law
-    if (gradePercentages.arabic >= 70 && gradePercentages.history >= 68 && gradePercentages.philosophy >= 65) {
-      const lawScore = (gradePercentages.arabic * 0.4 + gradePercentages.history * 0.3 + gradePercentages.philosophy * 0.3) * getClassBonus("Law");
-      if (lawScore >= MIN_THRESHOLD) {
-        recommendations.push({
-          major: "Law",
-          match: Math.min(85, lawScore),
-          description: "Study legal systems and advocate for justice.",
-          reasons: [
-            `Strong Arabic language skills for legal documents`,
-            `Historical knowledge for legal precedents`,
-            `Philosophical thinking for legal analysis`,
-            baccalaureateClass === "literature-humanities" ? "Perfect for your humanities background" : ""
-          ].filter(Boolean)
-        });
-      }
-    }
-
-    // Literature & Languages - Strong in multiple languages
-    if (languagesAvg >= 72 && (gradePercentages.arabic >= 70 || gradePercentages.english >= 70)) {
-      const litScore = (languagesAvg + (Math.max(gradePercentages.arabic, gradePercentages.english) - 70) * 0.2) * getClassBonus("Literature & Languages");
-      recommendations.push({
-        major: "Literature & Languages",
-        match: Math.min(85, litScore),
-        description: "Study languages, literature, and communication.",
-        reasons: [
-          `Strong language abilities (Avg: ${Math.round(languagesAvg)}%)`,
-          `Excellent communication skills`,
-          gradePercentages.philosophy >= 65 ? `Philosophy enhances literary analysis` : `Strong foundation in language studies`,
-          baccalaureateClass === "literature-humanities" ? "Ideal for your literary background" : ""
-        ].filter(Boolean)
-      });
-    }
-
-    // Psychology - Social sciences with specific focus
-    if (gradePercentages.sociology >= 70 && gradePercentages.philosophy >= 65 && socialAvg >= 68) {
-      const psychScore = (gradePercentages.sociology * 0.4 + gradePercentages.philosophy * 0.3 + gradePercentages.biology * 0.2 + gradePercentages.english * 0.1) * getClassBonus("Psychology");
-      if (psychScore >= MIN_THRESHOLD) {
-        recommendations.push({
-          major: "Psychology",
-          match: Math.min(83, psychScore),
-          description: "Study human behavior, mental processes, and therapeutic techniques.",
-          reasons: [
-            `Strong understanding of human behavior (Sociology: ${grades.sociology}/20)`,
-            `Philosophical thinking for psychological analysis`,
-            gradePercentages.biology >= 60 ? `Biology background supports neuropsychology` : `Strong social science foundation`,
-            baccalaureateClass === "sociology-economics" ? "Great match for your social sciences track" : ""
-          ].filter(Boolean)
-        });
-      }
-    }
-
-    // Economics (Specialized) - Economics + Math + Philosophy
-    if (gradePercentages.economics >= 75 && gradePercentages.mathematics >= 70) {
-      const econScore = (gradePercentages.economics * 0.5 + gradePercentages.mathematics * 0.3 + gradePercentages.philosophy * 0.2) * getClassBonus("Economics");
-      if (econScore >= MIN_THRESHOLD) {
-        recommendations.push({
-          major: "Economics",
-          match: Math.min(87, econScore),
-          description: "Analyze economic systems, markets, and financial behavior.",
-          reasons: [
-            `Outstanding economics performance (${grades.economics}/20)`,
-            `Strong mathematical foundation for economic modeling`,
-            gradePercentages.philosophy >= 65 ? `Philosophical thinking enhances economic theory` : `Analytical skills for market analysis`,
-            baccalaureateClass === "sociology-economics" ? "Perfect for your economics background" : ""
-          ].filter(Boolean)
-        });
-      }
-    }
-
-    // Sort by match score and limit to meaningful recommendations
-    const sortedRecommendations = recommendations
-      .filter(rec => rec.match >= 60) // Only show strong matches
-      .sort((a, b) => b.match - a.match)
-      .slice(0, 4); // Limit to top 4 recommendations
-
-    // Ensure we have at least one recommendation
-    if (sortedRecommendations.length === 0) {
-      const avgGrade = Object.values(gradePercentages).reduce((a, b) => a + b, 0) / Object.values(gradePercentages).length;
-      sortedRecommendations.push({
-        major: "Liberal Arts",
-        match: Math.max(60, avgGrade),
-        description: "A broad field that allows you to explore various interests while developing critical thinking skills.",
-        reasons: [
-          "Well-rounded academic performance",
-          "Opportunity to explore multiple disciplines",
-          "Foundation for various career paths"
-        ]
-      });
-    }
-
-    setRecommendations(sortedRecommendations);
-    setShowResults(true);
-    setShowAllRecommendations(false);
-    toast.success("Analysis complete! Check your recommendations below.");
   };
 
   const resetAnalysis = () => {
