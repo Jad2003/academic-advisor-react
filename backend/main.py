@@ -1,9 +1,11 @@
+import os
+# Set llama model path for absolute reliability (Windows user-supplied)
+os.environ["LLAMA_MODEL_PATH"] = r"C:\Users\user\.ollama\models"
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
-
-import os
 
 app = FastAPI(
     title="EduGuideAI Backend",
@@ -24,13 +26,14 @@ try:
     from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
     import torch
 
-    # You probably have to specify the path to your local Llama3.2:3b, update path as necessary:
-    LLAMA_PATH = os.environ.get("LLAMA_MODEL_PATH", "./llama3.2-3b")
+    # Use path as provided in the environment variable (now always set at import)
+    LLAMA_PATH = os.environ.get("LLAMA_MODEL_PATH", r"C:\Users\user\.ollama\models")
 
     tokenizer = AutoTokenizer.from_pretrained(LLAMA_PATH)
     model = AutoModelForCausalLM.from_pretrained(LLAMA_PATH, torch_dtype=torch.float16, device_map="auto")
     llm_chat = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=512)
 except Exception as e:
+    print(f"Error loading Llama model from {os.environ['LLAMA_MODEL_PATH']}: {e}")
     llm_chat = None
 
 def generate_llama_question(previous_qas: List[Dict[str, Any]]) -> Dict:
