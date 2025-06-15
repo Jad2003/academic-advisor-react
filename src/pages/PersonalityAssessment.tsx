@@ -21,14 +21,10 @@ const PersonalityAssessment = () => {
   const [showAllResults, setShowAllResults] = useState(false);
 
   const handleAssessmentComplete = (assessmentResults: AssessmentResult[]) => {
-    if (assessmentResults && assessmentResults.length > 0) {
-      setResults(assessmentResults);
-      setShowResults(true);
-      setShowAllResults(false);
-      toast.success("Assessment complete! Your personality-based recommendations are ready.");
-    } else {
-      toast.error("Sorry, we couldn't generate recommendations at this time. Please try again.");
-    }
+    setResults(assessmentResults);
+    setShowResults(true);
+    setShowAllResults(false);
+    toast.success("Assessment complete! Your personality-based recommendations are ready.");
   };
 
   const resetAssessment = () => {

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -234,8 +235,7 @@ const AdaptivePersonalityAssessment = ({ onComplete, onPrevious }: AdaptivePerso
     const currentQuestion = questionFlow[currentQuestionIndex];
     
     // Store the answer
-    const newAnswers = { ...answers, [currentQuestion.id]: answerIndex };
-    setAnswers(newAnswers);
+    setAnswers(prev => ({ ...prev, [currentQuestion.id]: answerIndex }));
 
     // Determine next questions based on current answer and flow
     if (currentQuestionIndex === 0) {
@@ -264,39 +264,198 @@ const AdaptivePersonalityAssessment = ({ onComplete, onPrevious }: AdaptivePerso
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
       // Assessment complete (after 6 questions)
-      analyzeResults(newAnswers);
+      analyzeResults();
     }
 
     setCurrentAnswer("");
   };
 
-  const analyzeResults = async (finalAnswers: { [key: string]: number }) => {
-    console.log("Sending personality answers for analysis:", finalAnswers);
+  const analyzeResults = () => {
+    console.log("Analyzing adaptive personality assessment:", answers);
     
-    try {
-      // This is where you would call your Python backend.
-      // You need to create this API endpoint.
-      const response = await fetch('/api/personality-analysis', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ answers: finalAnswers }),
-      });
+    // Enhanced analysis based on adaptive responses
+    const traits = {
+      analytical: 0,
+      creative: 0,
+      social: 0,
+      technical: 0,
+      leadership: 0,
+      empathetic: 0,
+      practical: 0,
+      research: 0,
+      innovative: 0,
+      collaborative: 0
+    };
 
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
+    // Analyze answers with weighted scoring
+    Object.entries(answers).forEach(([questionId, answerIndex]) => {
+      switch (questionId) {
+        case "q1_interest":
+          if (answerIndex === 0) { traits.analytical += 4; traits.technical += 2; }
+          if (answerIndex === 1) { traits.creative += 4; traits.empathetic += 1; }
+          if (answerIndex === 2) { traits.social += 4; traits.empathetic += 2; }
+          if (answerIndex === 3) { traits.technical += 4; traits.practical += 2; }
+          if (answerIndex === 4) { traits.analytical += 3; traits.research += 3; }
+          break;
+
+        case "q2_environment":
+          if (answerIndex === 0) { traits.analytical += 3; traits.research += 2; }
+          if (answerIndex === 1) { traits.social += 3; traits.leadership += 2; traits.collaborative += 3; }
+          if (answerIndex === 2) { traits.creative += 3; traits.innovative += 2; }
+          if (answerIndex === 3) { traits.technical += 3; traits.practical += 2; }
+          if (answerIndex === 4) { traits.practical += 3; traits.social += 1; }
+          break;
+
+        case "q3_technical":
+          if (answerIndex === 0) { traits.technical += 4; traits.practical += 3; }
+          if (answerIndex === 1) { traits.technical += 4; traits.analytical += 2; traits.innovative += 2; }
+          if (answerIndex === 2) { traits.analytical += 4; traits.research += 2; }
+          if (answerIndex === 3) { traits.research += 4; traits.analytical += 2; }
+          if (answerIndex === 4) { traits.creative += 2; traits.technical += 3; }
+          break;
+
+        case "q3_creative":
+          if (answerIndex === 0) { traits.creative += 4; traits.practical += 1; }
+          if (answerIndex === 1) { traits.creative += 4; traits.empathetic += 2; }
+          if (answerIndex === 2) { traits.creative += 4; traits.social += 1; }
+          if (answerIndex === 3) { traits.creative += 3; traits.technical += 2; traits.innovative += 2; }
+          if (answerIndex === 4) { traits.creative += 3; traits.practical += 2; }
+          break;
+
+        case "q3_social":
+          if (answerIndex === 0) { traits.empathetic += 4; traits.social += 2; }
+          if (answerIndex === 1) { traits.social += 3; traits.leadership += 2; }
+          if (answerIndex === 2) { traits.leadership += 3; traits.social += 3; }
+          if (answerIndex === 3) { traits.leadership += 4; traits.social += 2; traits.collaborative += 2; }
+          if (answerIndex === 4) { traits.research += 3; traits.social += 2; }
+          break;
+
+        // Additional scoring for questions 4-6
+        case "q4_problem_solving":
+        case "q4_inspiration":
+        case "q4_impact":
+          // Add scoring based on the specific question context
+          if (answerIndex === 0) { traits.analytical += 2; }
+          if (answerIndex === 1) { traits.practical += 2; }
+          if (answerIndex === 2) { traits.creative += 2; traits.innovative += 1; }
+          if (answerIndex === 3) { traits.research += 2; }
+          if (answerIndex === 4) { traits.collaborative += 2; }
+          break;
       }
+    });
 
-      const finalResults: AssessmentResult[] = await response.json();
-      console.log("Received personality recommendations:", finalResults);
-      onComplete(finalResults);
+    // Generate recommendations based on dominant traits
+    const recommendations: AssessmentResult[] = [];
 
-    } catch (error) {
-      console.error("Failed to analyze personality:", error);
-      // Pass an empty array to the parent to indicate an error
-      onComplete([]);
+    // Engineering
+    if (traits.technical + traits.analytical >= 8 && traits.practical >= 3) {
+      recommendations.push({
+        major: "Engineering",
+        match: Math.min(95, 65 + (traits.technical + traits.analytical) * 3),
+        description: "Design and build innovative solutions to complex technical challenges.",
+        traits: ["Strong technical aptitude", "Analytical problem-solving", "Practical application skills"]
+      });
     }
+
+    // Computer Science
+    if (traits.technical >= 5 && traits.analytical >= 4) {
+      recommendations.push({
+        major: "Computer Science", 
+        match: Math.min(92, 62 + (traits.technical + traits.analytical) * 2.5),
+        description: "Develop cutting-edge software and computational solutions.",
+        traits: ["Technical expertise", "Logical reasoning", "System design thinking"]
+      });
+    }
+
+    // Architecture
+    if (traits.creative >= 4 && traits.technical >= 3 && traits.practical >= 3) {
+      recommendations.push({
+        major: "Architecture",
+        match: Math.min(88, 60 + (traits.creative + traits.technical) * 2.5),
+        description: "Design buildings and spaces that blend creativity with technical precision.",
+        traits: ["Creative design skills", "Technical understanding", "Spatial reasoning"]
+      });
+    }
+
+    // Psychology
+    if (traits.empathetic >= 5 && traits.social >= 4) {
+      recommendations.push({
+        major: "Psychology",
+        match: Math.min(90, 63 + (traits.empathetic + traits.social) * 3),
+        description: "Understand human behavior and help people overcome challenges.",
+        traits: ["High empathy", "Social understanding", "Research interest in human behavior"]
+      });
+    }
+
+    // Medicine
+    if (traits.empathetic >= 4 && traits.analytical >= 4 && traits.practical >= 3) {
+      recommendations.push({
+        major: "Medicine",
+        match: Math.min(93, 65 + (traits.empathetic + traits.analytical) * 2.8),
+        description: "Combine scientific knowledge with compassionate patient care.",
+        traits: ["Empathetic nature", "Analytical thinking", "Practical problem-solving"]
+      });
+    }
+
+    // Creative Fields (Fine Arts, Graphic Design)
+    if (traits.creative >= 6) {
+      const artField = traits.innovative >= 3 ? "Graphic Design" : "Fine Arts";
+      recommendations.push({
+        major: artField,
+        match: Math.min(88, 60 + traits.creative * 4),
+        description: traits.innovative >= 3 ? 
+          "Create visual communications that blend artistry with technology." :
+          "Express creativity and bring artistic visions to life through traditional and contemporary media.",
+        traits: ["Strong creative expression", "Artistic vision", "Innovative thinking"]
+      });
+    }
+
+    // Business Administration
+    if (traits.leadership >= 4 && (traits.practical >= 3 || traits.social >= 3)) {
+      recommendations.push({
+        major: "Business Administration",
+        match: Math.min(85, 58 + (traits.leadership + traits.practical) * 2.5),
+        description: "Lead organizations and drive business innovation.",
+        traits: ["Leadership qualities", "Strategic thinking", "Business acumen"]
+      });
+    }
+
+    // International Relations
+    if (traits.social >= 4 && traits.collaborative >= 3 && traits.analytical >= 3) {
+      recommendations.push({
+        major: "International Relations",
+        match: Math.min(82, 60 + (traits.social + traits.collaborative) * 2.5),
+        description: "Navigate global politics and foster international cooperation.",
+        traits: ["Global perspective", "Collaborative skills", "Political analysis"]
+      });
+    }
+
+    // Research Sciences
+    if (traits.research >= 5 && traits.analytical >= 4) {
+      recommendations.push({
+        major: "Research Sciences",
+        match: Math.min(87, 61 + (traits.research + traits.analytical) * 2.8),
+        description: "Conduct research to advance human knowledge and understanding.",
+        traits: ["Research methodology", "Analytical thinking", "Scientific curiosity"]
+      });
+    }
+
+    // Sort and limit recommendations
+    const finalResults = recommendations
+      .sort((a, b) => b.match - a.match)
+      .slice(0, 3); // Limit to top 3 for precision
+
+    // Ensure we have at least one recommendation
+    if (finalResults.length === 0) {
+      finalResults.push({
+        major: "Liberal Arts",
+        match: 70,
+        description: "Explore diverse interests while developing critical thinking and communication skills.",
+        traits: ["Well-rounded interests", "Adaptable mindset", "Broad intellectual curiosity"]
+      });
+    }
+
+    onComplete(finalResults);
   };
 
   const currentQuestion = questionFlow[currentQuestionIndex];
