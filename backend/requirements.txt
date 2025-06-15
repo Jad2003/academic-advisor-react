@@ -1,6 +1,16 @@
 
+# Main backend dependencies for EduGuideAI
 fastapi
 uvicorn
 pydantic
 transformers
-torch
+# See below for proper PyTorch (GPU) install instructions
+# Do NOT run: "pip install torch" directly; instead, use:
+
+# For CUDA GPU (RTX 3050 or newer, CUDA 12.1):
+# Run this in your terminal before installing anything else:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# If you are CPU only, uncomment the following:
+# torch
+
